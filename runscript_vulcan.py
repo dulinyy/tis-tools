@@ -1,3 +1,8 @@
+"""
+Sub file used for op calculation; to be used for tis paths
+Have to overwrite to make it nicer
+"""
+
 import os
 import sys
 import subprocess as sub
@@ -5,8 +10,8 @@ import numpy as np
 import tistools as tt
 
 #calculates the binary value over a trajectory and writes to a file of choice
-def calc_trajectory(binary,traj,tmpname,filename):
-    datacmb = tt.combine_paths_return(traj)
+def calc_trajectory(binary,traj,tmpname,filename,gzip):
+    datacmb = tt.combine_paths_return(traj,gzip)
     opfile = open(filename,'w')
     tmpfilelist = []
     qtraj = []

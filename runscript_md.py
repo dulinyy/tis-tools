@@ -1,3 +1,8 @@
+"""
+Sub file used for op calculation; to be used for normal md paths
+Have to overwrite to make it nicer
+"""
+
 import os
 import sys
 import subprocess as sub

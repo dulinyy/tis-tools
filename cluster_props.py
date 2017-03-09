@@ -1,5 +1,5 @@
 """
-add description
+calculates cluster props. Edit it to make it nicer and parallelise alles
 """
 
 import numpy as np
