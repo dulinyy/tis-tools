@@ -10,184 +10,31 @@ import sys
 import subprocess as sub
 import numpy as np
 import time
+import logging
+import helpers.tistools_helpers as helpers
 
+#SRM:set up logger for the general error messages
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("analysis.log")
+formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+logger.propagate = False 
 
-#function to read first and last line
-def read_fline(file):
-    """
-    Function which reads the first and last line of a file
-    Argument : filename of the file to be read
-    Return   : the first and last line in that order.
-    """
-    with open(file, "rb") as f:
-        first = f.readline()      # Read the first line.
-        f.seek(-2, 2)             # Jump to the second last byte.
-        while f.read(1) != b"\n": # Until EOL is found...
-            f.seek(-2, 1)         # ...jump back the read byte plus one more.
-        last = f.readline()
-    return first,last
+#create helpers class
+helpers = helpers.tistools_helpers()
 
-#extract order parameter value
-def extract_opval(first,last):
-    """
-    Function which reads the order parameter value from the line of a trajectory.00.0000XXX.dat file
-    Argument : first and last lines of the above file
-    Return   : the order parameter minimum and maximum value.
-    """
-    rawf = first.split()
-    rawl = last.split()
-    return rawf[1],rawl[1]
-
-#to check the type of the path
-def check_type(sA,sB,sstateA,sstateB):
-    """
-    Function which checks the type of path, if it is Ab,BA,AA,BB or UN(which is error paths)
-    Argument  : first two values are the beginning and end of the path from traj file, next two values are the order parameter limits.
-    Return    : Path type string 
-    """
-    #AB path condition
-    sA = float(sA)
-    sB = float(sB)
-    sstateA = float(sstateA)
-    sstateB = float(sstateB)
-    if ((sA<=sstateA) and (sB>=sstateB)):
-        path_type = "AB"
-    elif ((sA>=sstateB) and (sB<=sstateA)):
-        path_type = "BA"
-    elif ((sA<=sstateA) and (sB<=sstateA)):
-        path_type = "AA"
-    elif ((sA>=sstateB) and (sB>=sstateB)):
-        path_type = "BB"
-    else:
-        path_type = "UN"
-    #print path_type
-    return path_type
-
-
-#generate a list of path numbers first
-def generate_pathlist(start,stop):
-    """
-    Helper function to generate a list of paths
-    Argument  : fstart and stop values of path numbers
-    Return    : Path no list
-    """
-    pathno_list = []
-    for i in range(start,stop+1):
-        pathno_list.append(str(("%07d")%i))
-    #okay lets read the stable states   
-    return pathno_list
-
-
-#lets read the stable states
-def read_op():
-    im_here = os.getcwd()
-    for line in open(os.path.join(im_here,"options","orderparameters.txt")):
-        raw = line.split()
-        if (raw[0]=="custom"):
-            sstateA = float(raw[3])
-            sstateB = float(raw[4])
-            break
-    return sstateA,sstateB
-
-
-
-#okay. The stable states are in.
-#time to read the interfaces list
-def generate_intflist():
-    int_type = []
-    int_val = []
-    int_list = []
-    for line in open(os.path.join(os.getcwd(),"options","interfaces.txt")):
-        raw = line.split()
-        int_type.append(raw[0])
-        int_val.append(("%02d")%int(raw[1]))
-
-    for i in range(len(int_type)):
-        int_list.append(int_type[i]+str(int_val[i]))
-
-    return int_list
-
-
-def separate_traj(traj,gzip=False,writetofile=False):
-    """
-    Seperate the trajectory and return in a data file
-    data array consits of sub array of slices
-    zip support added
-    """
-    infile = open(traj,'r')
-    data = []
-    datasliced = []
-    for line in infile:
-        data.append(line)
-
-    nlines = len(data)
-    natoms = int(data[3])
-    nblock = natoms+9
-    nslices = nlines/nblock
-
-    for j in range(nslices):
-        start = j*nblock
-        end = (j+1)*nblock
-        dummy = []
-        for i in range(start,end):
-            dummy.append(data[i])
-        datasliced.append(dummy)
-
-    if writetofile==True:
-        filenamelist = []
-        for i in range(len(datasliced)):
-            splitfile = os.path.join(traj,str(i))
-            fout = open(splitfile,'w')
-            fout.write(datasliced[i])
-            fout.close()
-        return datasliced,filenamelist
-    else:
-        return datasliced
-
-
-def combine_paths_return(pathno,gzip=False):
-    """
-    Combines forward and backward part in right order
-    and returns the combined data string.
-    zip support added
-    """
-    print pathno
-    fwdpath = os.path.join(pathno,"forward","traj.dat")
-    bkdpath = os.path.join(pathno,"backward","traj.dat")
-    datafwd = separate_traj(fwdpath,gzip)
-    databkd = separate_traj(bkdpath,gzip)
-    datacmb = []
-
-    firstslice = True
-    for data in databkd[::-1]:
-        datacmb.append(data)
-    for data in datafwd[1:]:
-        datacmb.append(data)
-    return datacmb
-
-
-def combine_paths_write(pathno,writefile,gzip=False):
-    """
-    Combine the backward and forward part of the trajectory
-    remember to delete the combined paths after use!
-    might take a lot of memory.
-    """
-    print pathno
-    outfile = open(writefile,'w')
-    datacmb = combine_paths_return(pathno,gzip)
-    for i in range(len(datacmb)):
-        for j in range(len(datacmb[i])):
-            outfile.write(datacmb[i][j])
-
-    outfile.close()
-
+#function to zip all paths
+def zip_paths(start,stop):
+    helpers.zip_all_paths(start,stop)
 
 #calculates the binary value over a trajectory and writes to a file of choice
-def calc_trajectory(binary,traj,tmpname,filename,writetofile=True,gzip=False):
+def calc_trajectory(binary,traj,tmpname,filename,gzip=False,writetofile=True):
     """
     calculates the binary value over a trajectory and writes to a file of choice
     """
-    datacmb = combine_paths_return(traj,gzip)
+    datacmb = helpers.combine_paths_return(traj,gzip)
     opfile = open(filename,'w')
     tmpfilelist = []
     qtraj = []
@@ -205,6 +52,8 @@ def calc_trajectory(binary,traj,tmpname,filename,writetofile=True,gzip=False):
         cmd = []
         cmd.append(binary)
         cmd.append(tmp)
+        logger.info("command created")
+        logger.info(cmd)
         proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
         out,err = proc.communicate(input="")
         proc.wait()
@@ -221,82 +70,15 @@ def calc_trajectory(binary,traj,tmpname,filename,writetofile=True,gzip=False):
 
 
 
-#make a sumbmission script for vulcan
-def create_vulcan_script(scriptpath,jobname,pythonname,cores,argarray):
-    """
-    Creates a submission script for vulcan
-    multi core support added
-    """
 
-    of = open(scriptpath,"w")
-    of.write("#!/bin/bash\n")
-    of.write(("#$ -N %s\n")% (jobname))
-    of.write("#$ -S /bin/bash\n")
-    of.write("#$ -r n\n")
-    of.write("#$ -cwd\n")
-    of.write("#$ -l h_rt=05:59:00\n")
-    of.write("#$ -l qname=serial.q\n")
-    of.write("#$ -j y\n")
-    of.write("#$ -R y\n")
-    of.write("#$ -pe smp " + str(cores) + "\n")
-    of.write("#$ -P ams.p\n")
-    of.write("source $HOME/.bashrc\n")
-    of.write("module load numpy/1.7.0b2\n")
-    of.write("module load intel/016.0.047\n")
-    of.write("hostname\n")
-    #modify from here
-
-    of.write(("python %s ")% (pythonname))
-    for i in range(len(argarray)):
-        of.write(("%s ")% argarray[i])
-    of.write("\n")
-
-    of.close()
-
-#code to run qsub on vulcan
-def run_job(scriptpath):
-    """
-    code to run qsub on vulcan
-    """
-    os.system(("qsub %s")% scriptpath)
-
-#monitor jobs on vulcan
-def monitor_jobs():
-    """
-    monitor jobs on vulcan
-    """
-    os.system("qstat > qstat.dat")
-    i=0
-    for line in open("qstat.dat",'r'):
-        i+=1
-    no_jobs = i-2
-    return no_jobs
-
-#test binary
-def test_binary(binary):
-    """
-    code to test the kind of outputs a binary can produce. Not used for now.
-    """
-    pathtotest = os.path.join(os.getcwd(),"tis","standardfiles","conf.dump")
-    cmd = []
-    cmd.append(binary)
-    cmd.append(pathtotest)
-    proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
-    out,err = proc.communicate(input="")
-    proc.wait()
-    qd = out.split()
-    return len(qd)
-
-#make path type lists
-#
 def find_paths(start,stop):
     """
     Goes through every path between start and stop variable and assigns them as AA,AB,BA,BB or UN type.
     UN paths are defective paths.
     """
-    sstateA,sstateB = read_op()
-    int_list = generate_intflist()
-    pathno_list = generate_pathlist(start,stop)
+    sstateA,sstateB = helpers.read_op()
+    int_list = helpers.generate_intflist()
+    pathno_list = helpers.generate_pathlist(start,stop)
 
 
     for interface in int_list:
@@ -317,8 +99,8 @@ def find_paths(start,stop):
         for path in pathno_list:
             file_name = 'trajectory.00.'+path+'.dat'
             read_file = os.path.join(os.getcwd(),'tis/la',interface,path,file_name)
-            sA,sB = read_fline(read_file)
-	    sA,sB = extract_opval(sA,sB)
+            sA,sB = helpers.read_fline(read_file)
+	    sA,sB = helpers.extract_opval(sA,sB)
             path_type = check_type(sA,sB,sstateA,sstateB)
             if path_type=='AB':
                 fAB.write(("%s\n")% path)
@@ -342,7 +124,7 @@ def find_paths(start,stop):
 #interfacelist = list of interfaces for which to be calculated
 ##trial one did not work. Changing to text file based approach
 
-def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False:
+def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False):
     """
     Run an binary on the selected type of paths and gather the output into text files.
     Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
@@ -354,7 +136,7 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
     """
     
     if manual==False:
-        interfacelist = generate_intflist()
+        interfacelist = helpers.generate_intflist()
     else:
         interfacelist = []
         for line in open('read_interfaces.txt','r'):
@@ -389,16 +171,16 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
             filename = os.path.join(pathpath,filedummy)
             #pass it on
             if vulcan==False:
-                qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,writetofile=True,gzip)
+                qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,gzip=gzip,writetofile=True)
                 #add the filename to the list that has to read later
             else:
                 #scriptpath,jobname,pythonname,argarray
 
-                argarray = [binary,pathpath,tmpname,filename]
+                argarray = [binary,pathpath,tmpname,filename,gzip]
                 scriptname = os.path.join(pathpath,'subscript.job')
                 os.system(("cp %s %s")%(pythonscript,pathpath))
 	  	jobname = interface+str(path)
-                create_vulcan_script(scriptname,jobname,pythonscript,cores,argarray)
+                helpers.create_vulcan_script(scriptname,jobname,pythonscript,cores,argarray)
                 currentpath = os.getcwd()
                 os.chdir(pathpath)
 
@@ -406,9 +188,9 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
                 
                 runstatus=False
                 while(runstatus==False):
-                    no_jobs = monitor_jobs()
+                    no_jobs = helpers.monitor_jobs()
                     if no_jobs < jobs:
-                        run_job(scriptname)
+                        helpers.run_job(scriptname)
                         runstatus=True
                     else:
                         time.sleep(60)
@@ -422,11 +204,11 @@ def combine_averages(pathtype,bintype,manual=True):
     This is hard coded.
     """
     #read stable states
-    sstateA,sstateB = read_op()
+    sstateA,sstateB = helpers.read_op()
     
     #read interfaces
     if manual==False:
-        interfacelist = generate_intflist()
+        interfacelist = helpers.generate_intflist()
     else:
         interfacelist = []
         for line in open('read_interfaces.txt','r'):
@@ -555,6 +337,8 @@ def average_trajectory_md(binary,folderlistfile,vulcan=False,jobs=50,pythonscrip
     Does the same function as average_trajectory function, but for normal md paths (AB)
 
     folder names are read from a file.
+
+    DO NOT USE
     """
 
     folderlist = []
@@ -609,7 +393,7 @@ def average_cluster(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manua
     """
     
     if manual==False:
-        interfacelist = generate_intflist()
+        interfacelist = helpers.generate_intflist()
     else:
         interfacelist = []
         for line in open('read_interfaces.txt','r'):
@@ -651,7 +435,7 @@ def average_cluster(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manua
                 scriptname = os.path.join(pathpath,'subscript.job')
                 os.system(("cp %s %s")%(pythonscript,pathpath))
                 jobname = interface+path
-                create_vulcan_script(scriptname,jobname,pythonscript,argarray)
+                helpers.create_vulcan_script(scriptname,jobname,pythonscript,argarray)
                 currentpath = os.getcwd()
                 os.chdir(pathpath)
                 print pathpath
