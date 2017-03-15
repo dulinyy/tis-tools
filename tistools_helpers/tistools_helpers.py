@@ -71,8 +71,10 @@ class tistools_helpers(object):
         function to zip files
         """
         gzipfile = fname + '.gz'
-        with open(fname, 'rb') as f_in, gzip.open(gzipfile, 'wb') as f_out:
+	f_out = gzip.open(gzipfile, 'wb')
+        with open(fname, 'rb') as f_in:
             shutil.copyfileobj(f_in, f_out)
+	f_out.close()
         os.remove(fname)
 
     #to check the type of the path
