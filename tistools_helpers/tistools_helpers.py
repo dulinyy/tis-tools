@@ -146,6 +146,14 @@ class tistools_helpers(object):
 
         return int_list
 
+    #function to read interface list
+    #should be provided in read_interfaces.dat
+    def read_intflist(self):
+        interfacelist=[]
+        for line in open('read_interfaces.dat','r'):
+            interfacelist.append(line)
+        return interfacelist
+
 
     def separate_traj(self,traj,gzip=False,writetofile=False):
         """
@@ -293,11 +301,11 @@ class tistools_helpers(object):
         outfile.close()
 
 
-    def zip_all_paths(self,start,stop):
+    def zip_all_paths(self,start,stop,int_list):
         """
         Zip all traj files
         """
-        int_list = self.generate_intflist()
+        #int_list = self.generate_intflist()
         pathno_list = self.generate_pathlist(start,stop)
         for interface in int_list:
             interface = interface.strip()

@@ -11,7 +11,7 @@ import subprocess as sub
 import numpy as np
 import time
 import logging
-import helpers.tistools_helpers as helpers
+import tistools_helpers.tistools_helpers as tistools_helpers
 
 #SRM:set up logger for the general error messages
 logger = logging.getLogger(__name__)
@@ -23,11 +23,15 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = False 
 
 #create helpers class
-helpers = helpers.tistools_helpers()
+helpers = tistools_helpers.tistools_helpers()
 
 #function to zip all paths
-def zip_paths(start,stop):
-    helpers.zip_all_paths(start,stop)
+def zip_paths(start,stop,manual=False):
+    if manual==False:
+        interfacelist = helpers.generate_intflist()
+    else:
+        interfacelist = helpers.read_intflist()
+    helpers.zip_all_paths(start,stop,interfacelist)
 
 #calculates the binary value over a trajectory and writes to a file of choice
 def calc_trajectory(binary,traj,tmpname,filename,gzip=False,writetofile=True):
@@ -138,9 +142,8 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
     if manual==False:
         interfacelist = helpers.generate_intflist()
     else:
-        interfacelist = []
-        for line in open('read_interfaces.txt','r'):
-            interfacelist.append(line)
+        interfacelist = helpers.read_intflist()
+    
 
     for interface in interfacelist:
 	interface = interface.strip()
@@ -210,9 +213,7 @@ def combine_averages(pathtype,bintype,manual=True):
     if manual==False:
         interfacelist = helpers.generate_intflist()
     else:
-        interfacelist = []
-        for line in open('read_interfaces.txt','r'):
-            interfacelist.append(line)
+        interfacelist = helpers.read_intflist()
     
     if bintype=='struct':
             
@@ -395,9 +396,7 @@ def average_cluster(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manua
     if manual==False:
         interfacelist = helpers.generate_intflist()
     else:
-        interfacelist = []
-        for line in open('read_interfaces.txt','r'):
-            interfacelist.append(line)
+        interfacelist = helpers.read_intflist()
 
     for interface in interfacelist:
         interface = interface.strip()
