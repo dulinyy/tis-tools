@@ -38,7 +38,7 @@ def calc_trajectory(binary,traj,tmpname,filename,gzip=False,writetofile=True):
     """
     calculates the binary value over a trajectory and writes to a file of choice
     """
-    datacmb = helpers.combine_paths_return(traj,gzip)
+    datacmb = helpers.combine_paths_return(traj,gzip=gzip)
     opfile = open(filename,'w')
     tmpfilelist = []
     qtraj = []
@@ -56,8 +56,8 @@ def calc_trajectory(binary,traj,tmpname,filename,gzip=False,writetofile=True):
         cmd = []
         cmd.append(binary)
         cmd.append(tmp)
-        logger.info("command created")
-        logger.info(cmd)
+        #logger.info("command created")
+        #logger.info(cmd)
         proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
         out,err = proc.communicate(input="")
         proc.wait()
@@ -80,6 +80,7 @@ def find_paths(start,stop):
     Goes through every path between start and stop variable and assigns them as AA,AB,BA,BB or UN type.
     UN paths are defective paths.
     """
+    logger.info("starting to sort paths")
     sstateA,sstateB = helpers.read_op()
     int_list = helpers.generate_intflist()
     pathno_list = helpers.generate_pathlist(start,stop)
@@ -122,7 +123,7 @@ def find_paths(start,stop):
         fAA.close()
         fBB.close()
         fUN.close()
-
+    logger.info("path sorting completed")
 
 #average the properties of the path. Both vulcan and non vulcan here
 #interfacelist = list of interfaces for which to be calculated
@@ -138,7 +139,14 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
     If manual is set to True, interfaces are read from read_interfaces.txt from the sim directory.
 
     """
-    
+    logger.info(('binary selected: %s')%binary)
+    logger.info(('pathtype selected: %s')%pathtype)
+    logger.info(('vulcan set to: %s')%str(vulcan))
+    logger.info(('pythonscript selected: %s')%pythonscript)
+    logger.info(('manual reading of interfaces set to: %s')%str(manual))
+    logger.info(('zipped file support set to: %s')%str(gzip))
+    logger.info(('cores selected: %d')%cores)
+
     if manual==False:
         interfacelist = helpers.generate_intflist()
     else:
@@ -186,7 +194,7 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
                 helpers.create_vulcan_script(scriptname,jobname,pythonscript,cores,argarray)
                 currentpath = os.getcwd()
                 os.chdir(pathpath)
-
+                logger.info(('deploying job in %s')%pathpath)
                 
                 
                 runstatus=False
@@ -197,6 +205,8 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
                         runstatus=True
                     else:
                         time.sleep(60)
+                logger.info('job deployed')
+
                 os.chdir(currentpath)
 
             
