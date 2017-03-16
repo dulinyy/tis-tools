@@ -1,0 +1,16 @@
+
+h1. CHANGELOG
+
+h2. Version 8
+
+* Added CHANGELOG
+
+h2. Version 7
+
+* Manual override for interface list added for zipping paths.
+* Manual reading of interface lists changed to a function
+* helpers renamed to tistools_helpers to avoid clash with TPS wrapper code.
+
+h2. Version 6
+
+* Double loops modified to run on python 2.6.6
