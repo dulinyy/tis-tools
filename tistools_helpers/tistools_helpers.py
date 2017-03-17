@@ -196,12 +196,12 @@ class tistools_helpers(object):
             return datasliced
 
     #make a sumbmission script for vulcan
-    def create_vulcan_script(self,scriptpath,jobname,pythonname,cores,argarray):
+    def create_vulcan_script(self,scriptpath,jobname,pythonname,cores,queue,argarray):
         """
         Creates a submission script for vulcan
         multi core support added
         """
-
+        queue = queue + '.q'
         of = open(scriptpath,"w")
         of.write("#!/bin/bash\n")
         of.write(("#$ -N %s\n")% (jobname))
