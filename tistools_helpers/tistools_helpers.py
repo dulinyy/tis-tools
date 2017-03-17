@@ -209,7 +209,7 @@ class tistools_helpers(object):
         of.write("#$ -r n\n")
         of.write("#$ -cwd\n")
         of.write("#$ -l h_rt=05:59:00\n")
-        of.write("#$ -l qname=serial.q\n")
+        of.write(("#$ -l qname=%s\n")%queue)
         of.write("#$ -j y\n")
         of.write("#$ -R y\n")
         of.write("#$ -pe smp " + str(cores) + "\n")
