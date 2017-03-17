@@ -86,7 +86,7 @@ class tistools_helpers(object):
         """
         #AB path condition
         sA = float(sA)
-        sAB = float(sB)
+        sB = float(sB)
         sstateA = float(sstateA)
         sstateB = float(sstateB)
         if ((sA<=sstateA) and (sB>=sstateB)):

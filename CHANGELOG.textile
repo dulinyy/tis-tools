@@ -1,6 +1,10 @@
 
 h1. CHANGELOG
 
+h3. Version 16
+
+* Bug fix in identifying path type.
+
 h3. Version 14/15
 
 * bug fixes
