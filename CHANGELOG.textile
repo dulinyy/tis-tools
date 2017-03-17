@@ -1,6 +1,10 @@
 
 h1. CHANGELOG
 
+h3. Version 11
+
+* Bug fix for runscripts.
+
 h3. Version 10
 
 * Bug fixes for runscripts

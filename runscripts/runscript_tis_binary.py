@@ -9,7 +9,7 @@ import subprocess as sub
 import numpy as np
 import tistools as tt
 import tistools_helpers as tistools_helpers
-
+import logging
 
 #SRM:set up logger for the general error messages
 logger = logging.getLogger(__name__)

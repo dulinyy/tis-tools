@@ -106,7 +106,7 @@ def find_paths(start,stop):
             read_file = os.path.join(os.getcwd(),'tis/la',interface,path,file_name)
             sA,sB = helpers.read_fline(read_file)
 	    sA,sB = helpers.extract_opval(sA,sB)
-            path_type = check_type(sA,sB,sstateA,sstateB)
+            path_type = helpers.check_type(sA,sB,sstateA,sstateB)
             if path_type=='AB':
                 fAB.write(("%s\n")% path)
             elif path_type=='BA':
