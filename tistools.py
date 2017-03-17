@@ -129,7 +129,7 @@ def find_paths(start,stop):
 #interfacelist = list of interfaces for which to be calculated
 ##trial one did not work. Changing to text file based approach
 
-def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False):
+def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial'):
     """
     Run an binary on the selected type of paths and gather the output into text files.
     Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
@@ -191,7 +191,7 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
                 scriptname = os.path.join(pathpath,'subscript.job')
                 os.system(("cp %s %s")%(pythonscript,pathpath))
 	  	jobname = interface+str(path)
-                helpers.create_vulcan_script(scriptname,jobname,pythonscript,cores,argarray)
+                helpers.create_vulcan_script(scriptname,jobname,pythonscript,cores,queue,argarray)
                 currentpath = os.getcwd()
                 os.chdir(pathpath)
                 logger.info(('deploying job in %s')%pathpath)
@@ -390,7 +390,7 @@ def average_trajectory_md(binary,folderlistfile,vulcan=False,jobs=50,pythonscrip
             os.chdir(currentpath)
 
 
-def average_cluster(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False):
+def average_cluster(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,queue='serial'):
     """
     Run an binary on the selected type of paths and gather the output into text files.
     Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
@@ -444,7 +444,7 @@ def average_cluster(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manua
                 scriptname = os.path.join(pathpath,'subscript.job')
                 os.system(("cp %s %s")%(pythonscript,pathpath))
                 jobname = interface+path
-                helpers.create_vulcan_script(scriptname,jobname,pythonscript,argarray)
+                helpers.create_vulcan_script(scriptname,jobname,pythonscript,queue,argarray)
                 currentpath = os.getcwd()
                 os.chdir(pathpath)
                 print pathpath
