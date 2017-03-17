@@ -8,7 +8,7 @@ import sys
 import subprocess as sub
 import numpy as np
 import tistools as tt
-import tistools_helpers as tistools_helpers
+from  tistools_helpers import tistools_helpers
 import logging
 
 #SRM:set up logger for the general error messages
@@ -43,12 +43,12 @@ def calc_trajectory(binary,traj,tmpname,filename,gzip=False):
     #for tmp in tmpfilelist: 
         cmd = []
         cmd.append(binary)
-        cmd.append(tmp)
+        cmd.append(tmpfile)
         proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
         out,err = proc.communicate(input="")
         proc.wait()
         qd = out
-        os.system(("rm %s")% tmp)
+        os.system(("rm %s")% tmpfile)
         
         opfile.write(("%s")%(qd))
         opfile.flush()
