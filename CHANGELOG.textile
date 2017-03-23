@@ -1,6 +1,10 @@
 
 h1. CHANGELOG
 
+h3. Version 17
+
+* Added new codes for evaluation cluster properties
+
 h3. Version 16
 
 * Bug fix in identifying path type.
