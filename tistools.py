@@ -232,6 +232,10 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
 
     #hardcoded part
     workdir = '/home/users/menonsqr/temp' 
+    
+    if os.path.exists(workdir):
+	os.system(('rm -rf %s')%workdir) 
+    
     os.mkdir(workdir)
 
     logger.info(('binary selected: %s')%binary)
@@ -258,8 +262,8 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
         filenamelist = []
 
         #make a folder for the interface in the workdir
-        workinfpath = os.path.join(os.getcwd(),interface)
-
+        workinfpath = os.path.join(workdir,interface)
+	os.mkdir(workinfpath)
 
         #we get the list of all paths that needs to be analysed
         for path in open(pathpath,'r'):
@@ -269,9 +273,10 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
         for path in pathlist:
             path = path.strip()
             #points to specific path folder
-            pathpath = os.path.join(intfpath,path)
             #copy the path now
-            helpers.copy_path(pathpath,workinfpath)
+            #helpers.copy_path(pathpath,workinfpath)
+	    pathpath= os.path.join(intfpath,path)
+	    os.system(('cp -rf %s %s')%(pathpath,workinfpath))
             #reset pathpath
             pathpath=os.path.join(workinfpath,path)
             #combine the paths and return

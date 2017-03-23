@@ -142,16 +142,16 @@ class Seed(object):
 
 if __name__=="__main__":
 
-	traj = sys.argv[1]
-	outputfile = sys.argv[2]
+	traj = sys.argv[2]
+	outputfile = sys.argv[4]
 	tmpname = sys.argv[3]
-	binary = sys.argv[4]
+	binary = sys.argv[1]
 	
-	seedfileaddress = sys.argv[5]
-	seedsurfaceaddress = sys.argv[6]
-	
+	seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat' 
+	seedsurfaceaddress = '/home/users/menonsqr/SeedFCC19/seedsurface.dat'
+	seeddump = '/home/users/menonsqr/SeedFCC19/conf.dump'	
 
-	gzip = sys.argv[7]
+	gzip = sys.argv[5]
 
 	if gzip=='True':
 		gzip=True
@@ -164,7 +164,6 @@ if __name__=="__main__":
 	 
 	seed = Seed(seedfileaddress)
 	seed.ReadSeed()
-	seeddump = 'conf.dump'
 	seed.PopulateSeed(seeddump)
 
 
@@ -172,20 +171,24 @@ if __name__=="__main__":
 	 
 	seedsurface = Seed(seedsurfaceaddress)
 	seedsurface.ReadSeed()
-	seeddump = 'conf.dump'
 	seedsurface.PopulateSeed(seeddump)
 
 	#now we can start the reading of data
 	#data = helpers.separate_traj(traj)
 	data = helpers.combine_paths_return(traj,gzip=gzip)
-	os.system(('rm %s')%(traj))
+	
+	#code bit to delete the paths after reading
+	forpath = os.path.join(traj,'forward')
+	bakpath = os.path.join(traj,'backward')
+	os.system(('rm -rf %s')%(forpath))
+	os.system(('rm -rf %s')%(bakpath))
 	#needs path number argument, change it later
 	#data = helpers.combine_paths_return(traj)
 	fout = open(outputfile,'w')
 
 	#write header
 	fout.write(('# %10s  %10s  %10s  %10s %15s %10s %15s %15s\n')%('nucsize','mindist','seedincluster','inclusion','seedsurfaceincluster','inclusion','seedinsurface','seedinsurfacep'))
-
+	fout.flush()
     	for i in range(len(data)):
 
         	tmpfile = tmpname+str(i)+".dat"
@@ -206,7 +209,8 @@ if __name__=="__main__":
         	
 	        #read the atoms in
 	        atoms = read_alles(tmpfile)
-	        
+		os.remove(tmpfile)	        
+
 	        #first create the surface class
 		surfacefileaddress = "surface.dat" 
 		surface = Seed(surfacefileaddress)
@@ -237,7 +241,7 @@ if __name__=="__main__":
 
 
 		fout.write(('%10s  %10.4f  %10d  %10.4f %15d  %10.4f  %15d  %15.4f\n')%(nucsize.strip(),min_dist,numberofatoms,percent,surfacenumberofatoms,surfacepercent,seedinsurface,seedinsurfacep))
-		
+		fout.flush()
 	fout.close()
 
 
