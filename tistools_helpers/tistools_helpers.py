@@ -261,6 +261,13 @@ class tistools_helpers(object):
         qd = out.split()
         return len(qd)
 
+    #function to copy path from storage if required
+    def copy_path(self,source,destination):
+        os.system(('cp -rf %s %s')%(source,destination))
+        
+
+
+
 #----------------------------------------------------------------------------------------------------------------
 #                                       LEVEL TWO HELPERS
 #----------------------------------------------------------------------------------------------------------------

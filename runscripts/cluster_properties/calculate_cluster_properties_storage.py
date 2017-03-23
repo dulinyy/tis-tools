@@ -178,6 +178,7 @@ if __name__=="__main__":
 	#now we can start the reading of data
 	#data = helpers.separate_traj(traj)
 	data = helpers.combine_paths_return(traj,gzip=gzip)
+	os.system(('rm %s')%(traj))
 	#needs path number argument, change it later
 	#data = helpers.combine_paths_return(traj)
 	fout = open(outputfile,'w')

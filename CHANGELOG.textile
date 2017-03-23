@@ -1,6 +1,10 @@
 
 h1. CHANGELOG
 
+h3. Version 18
+
+* Added support to run analysis from storage
+
 h3. Version 17
 
 * Added new codes for evaluation cluster properties

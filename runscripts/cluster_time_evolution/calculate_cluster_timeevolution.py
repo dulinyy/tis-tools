@@ -238,7 +238,7 @@ if __name__=="__main__":
 
 	traj = sys.argv[1]
 	outputfile = sys.argv[2]
-	tmpname = sys..argv[3]
+	tmpname = sys.argv[3]
 	binary = sys.argv[4]
 	seedfileaddress = sys.argv[5]
 	gzip = sys.argv[7]

@@ -129,7 +129,7 @@ def find_paths(start,stop):
 #interfacelist = list of interfaces for which to be calculated
 ##trial one did not work. Changing to text file based approach
 
-def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial'):
+def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial',extension='.opd.dat'):
     """
     Run an binary on the selected type of paths and gather the output into text files.
     Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
@@ -137,6 +137,11 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
     If vulcan is set to True, it runs jobs on vulcan based on the total number of jobs allowed.
 
     If manual is set to True, interfaces are read from read_interfaces.txt from the sim directory.
+
+    Option to be added later.
+    Arglist option:
+    should have all the arguments required for the corresponding python script
+    should be a dictionary
 
     """
     logger.info(('binary selected: %s')%binary)
@@ -177,7 +182,7 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
             indentifier = interface+path
             #generate a tempname
             tmpname = os.path.join(pathpath,indentifier)
-            filedummy = indentifier+'.opd.dat'
+            filedummy = indentifier+extension
             #a dummy file
             filename = os.path.join(pathpath,filedummy)
             #pass it on
@@ -209,6 +214,108 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
 
                 os.chdir(currentpath)
 
+def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial',extension='.opd.dat'):
+    """
+    Run an binary on the selected type of paths and gather the output into text files.
+    Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
+
+    If vulcan is set to True, it runs jobs on vulcan based on the total number of jobs allowed.
+
+    If manual is set to True, interfaces are read from read_interfaces.txt from the sim directory.
+
+    Option to be added later.
+    Arglist option:
+    should have all the arguments required for the corresponding python script
+    should be a dictionary
+
+    """
+
+    #hardcoded part
+    workdir = '/home/users/menonsqr/temp' 
+    os.mkdir(workdir)
+
+    logger.info(('binary selected: %s')%binary)
+    logger.info(('pathtype selected: %s')%pathtype)
+    logger.info(('vulcan set to: %s')%str(vulcan))
+    logger.info(('pythonscript selected: %s')%pythonscript)
+    logger.info(('manual reading of interfaces set to: %s')%str(manual))
+    logger.info(('zipped file support set to: %s')%str(gzip))
+    logger.info(('cores selected: %d')%cores)
+
+    if manual==False:
+        interfacelist = helpers.generate_intflist()
+    else:
+        interfacelist = helpers.read_intflist()
+    
+
+    for interface in interfacelist:
+        interface = interface.strip()
+        intfpath = os.path.join(os.getcwd(),"tis","la",interface)
+        intfpath = intfpath.strip()
+        pathpath = os.path.join(intfpath,pathtype+".dat")
+        pathpath = pathpath.strip()
+        pathlist = []
+        filenamelist = []
+
+        #make a folder for the interface in the workdir
+        workinfpath = os.path.join(os.getcwd(),interface)
+
+
+        #we get the list of all paths that needs to be analysed
+        for path in open(pathpath,'r'):
+            pathlist.append(path)
+
+        #may the analysis start
+        for path in pathlist:
+            path = path.strip()
+            #points to specific path folder
+            pathpath = os.path.join(intfpath,path)
+            #copy the path now
+            helpers.copy_path(pathpath,workinfpath)
+            #reset pathpath
+            pathpath=os.path.join(workinfpath,path)
+            #combine the paths and return
+            #datacmb = combine_paths_return(pathpath,gzip)
+            #generate a random identifier
+            indentifier = interface+path
+
+
+            #now copy the file
+            #make a dir inside main dir
+            
+            #generate a tempname
+            tmpname = os.path.join(pathpath,indentifier)
+            filedummy = indentifier+extension
+            #a dummy file
+            filename = os.path.join(pathpath,filedummy)
+            #pass it on
+            if vulcan==False:
+                qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,gzip=gzip,writetofile=True)
+                #add the filename to the list that has to read later
+            else:
+                #scriptpath,jobname,pythonname,argarray
+
+                argarray = [binary,pathpath,tmpname,filename,gzip]
+                scriptname = os.path.join(pathpath,'subscript.job')
+                os.system(("cp %s %s")%(pythonscript,pathpath))
+                jobname = interface+str(path)
+                helpers.create_vulcan_script(scriptname,jobname,pythonscript,cores,queue,argarray)
+                currentpath = os.getcwd()
+                os.chdir(pathpath)
+                logger.info(('deploying job in %s')%pathpath)
+                
+                
+                runstatus=False
+                while(runstatus==False):
+                    no_jobs = helpers.monitor_jobs()
+                    if no_jobs < jobs:
+                        helpers.run_job(scriptname)
+                        runstatus=True
+                    else:
+                        time.sleep(60)
+                logger.info('job deployed')
+
+                os.chdir(currentpath)
             
 def combine_averages(pathtype,bintype,manual=True):
     """
