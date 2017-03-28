@@ -84,7 +84,7 @@ def find_paths(start,stop):
     sstateA,sstateB = helpers.read_op()
     int_list = helpers.generate_intflist()
     pathno_list = helpers.generate_pathlist(start,stop)
-
+    ABcount=0
 
     for interface in int_list:
         abfile_path = os.path.join(os.getcwd(),'tis/la',interface,'AB.dat')
@@ -109,6 +109,7 @@ def find_paths(start,stop):
             path_type = helpers.check_type(sA,sB,sstateA,sstateB)
             if path_type=='AB':
                 fAB.write(("%s\n")% path)
+                ABcount+=1
             elif path_type=='BA':
                 fBA.write(("%s\n")% path)
             elif path_type=='AA':
@@ -124,6 +125,7 @@ def find_paths(start,stop):
         fBB.close()
         fUN.close()
     logger.info("path sorting completed")
+    logger.info(("%d AB paths found.")%ABcount)
 
 #average the properties of the path. Both vulcan and non vulcan here
 #interfacelist = list of interfaces for which to be calculated
