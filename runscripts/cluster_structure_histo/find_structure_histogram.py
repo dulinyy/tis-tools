@@ -85,8 +85,9 @@ class Seed(object):
 			for line in open(self.seedfile):
 				self.seedids.append(int(line.strip()))
 			if seedignore==True:
-				commonatoms = list(set(self.seedids).intersection(seedclass.seedids))
-				print commonatoms
+				dummy = [x for x in self.seedids if x not in seedclass.seedids]
+				self.seedids = dummy
+				
 
 
 			self.atoms=np.empty([len(self.seedids),5])
@@ -176,18 +177,19 @@ if __name__=="__main__":
 	outputfile = sys.argv[4]
 	tmpname = sys.argv[3]
 	binary = sys.argv[1]
+	gzip = sys.argv[5]	
 	
-	seedfileaddress = 'seed.dat'
-	seeddump = 'seed.dump'
+	deletefiles=True
+	seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
+	seeddump = '/home/users/menonsqr/SeedFCC19/conf.dump'
 	
-	gzip = 'False'
 
 	if gzip=='True':
 		gzip=True
 	else:
 		gzip=False
 
-
+	
 	#first create the seed class 
 	seed = Seed(seedfileaddress)
 	seed.ReadSeed()
@@ -209,8 +211,14 @@ if __name__=="__main__":
 	shcphisto = Histogram(histomin,histomax,histobins)
 	sudfhisto = Histogram(histomin,histomax,histobins)	
 	#now we can start the reading of data
-	data = helpers.separate_traj(traj)
-	#data = helpers.combine_paths_return(traj,gzip=gzip)
+	#data = helpers.separate_traj(traj)
+	data = helpers.combine_paths_return(traj,gzip=gzip)
+	if deletefiles:
+		forpath = os.path.join(traj,'forward')
+        	bakpath = os.path.join(traj,'backward')
+        	os.system(('rm -rf %s')%(forpath))
+        	os.system(('rm -rf %s')%(bakpath))
+
 	#needs path number argument, change it later
 	#data = helpers.combine_paths_return(traj)
 
@@ -244,7 +252,7 @@ if __name__=="__main__":
         	
 	        #read the atoms in
 	        atoms = read_alles(tmpfile)
-	        
+	        os.system(('rm %s')% tmpfile) 
 	        #first create the surface class
 		surfacefileaddress = "surface.dat" 
 		surface = Seed(surfacefileaddress)
