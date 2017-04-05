@@ -324,7 +324,9 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
 
                 os.chdir(currentpath)
             
-def combine_averages(pathtype,bintype,manual=True):
+
+            
+def combine_averages(pathtype,bintype,manual=False):
     """
     Combine the outut of the previous function from different files into an averaged data
 
@@ -351,9 +353,13 @@ def combine_averages(pathtype,bintype,manual=True):
     elif bintype=='cluster':
 
         oparray = np.array(range(int(sstateA),int(sstateB+1)))
-        bccavg = np.zeros(len(oparray))
-        fccavg = np.zeros(len(oparray))
-        hcpavg = np.zeros(len(oparray))
+        min_dist = np.zeros(len(oparray))
+        numberofatoms = np.zeros(len(oparray))
+        percent = np.zeros(len(oparray))
+        surfacenumberofatoms = np.zeros(len(oparray))
+        surfacepercent = np.zeros(len(oparray))
+        seedinsurface = np.zeros(len(oparray))
+        seedinsurfacep = np.zeros(len(oparray))
         count = np.zeros(len(oparray))
     
     for interface in interfacelist:
@@ -387,15 +393,18 @@ def combine_averages(pathtype,bintype,manual=True):
                 filename = os.path.join(pathpath,filedummy)
 
                 #next hardcoded part
-                op,bcc,fcc,hcp,udf = np.loadtxt(filename,unpack=True)
+                if os.path.exists(filename):
+                        op,bcc,fcc,hcp,udf = np.loadtxt(filename,unpack=True)
+                else:
+                        continue
                 op = op.astype(int)
-		#print fcc
+                #print fcc
                 for i in range(len(op)):
                     for j in range(len(oparray)):
                             if op[i]==oparray[j]:
-				    #print op[i]
+                                    #print op[i]
                                     bccavg[j]+=bcc[i]
-			 	    #print bccavg[j]
+                                    #print bccavg[j]
                                     fccavg[j]+=fcc[i]
                                     hcpavg[j]+=hcp[i]
                                     udfavg[j]+=udf[i]
@@ -413,22 +422,25 @@ def combine_averages(pathtype,bintype,manual=True):
                 indentifier = interface+path
                 #generate a tempname
                 filedummy = indentifier+'.clu.dat'
-		filedummy2 = indentifier+'.opd.dat'
-                #a dummy file
                 filename = os.path.join(pathpath,filedummy)
-		filename2 = os.path.join(pathpath,filedummy2)
-                #next hardcoded part
-                bcc,fcc,hcp = np.loadtxt(filename,unpack=True)
-		op,a,b,c,f = np.loadtxt(filename2,unpack=True)
+                op,smin_dist,snumberofatoms,spercent,ssurfacenumberofatoms,ssurfacepercent,sseedinsurface,sseedinsurfacep = np.loadtxt(filename,unpack=True,comments='#') 
                 op = op.astype(int)
+                snumberofatoms = snumberofatoms.astype(int)
+                ssurfacenumberofatoms = ssurfacenumberofatoms.astype(int)
+                sseedinsurface = sseedinsurface.astype(int)
 
                 for i in range(len(op)):
                     for j in range(len(oparray)):
                             if op[i]==oparray[j]:
-                                    bccavg[j]+=bcc[i]
-                                    fccavg[j]+=fcc[i]
-                                    hcpavg[j]+=hcp[i]
-                                    count[j]+=1
+                                min_dist[j] += smin_dist[i]
+                                numberofatoms[j] += snumberofatoms[i]
+                                percent[j] += spercent[i]
+                                surfacenumberofatoms[j] += ssurfacenumberofatoms[i]
+                                surfacepercent[j] += ssurfacepercent[i]
+                                seedinsurface[j] += sseedinsurface[i]
+                                seedinsurfacep[j] += sseedinsurfacep[i]
+                                count += 1
+
         
     if bintype=='struct':
 
@@ -446,15 +458,16 @@ def combine_averages(pathtype,bintype,manual=True):
         
         for i in range(len(oparray)):
                 if count[i]!=0:
-                    bccavg[i]/=count[i]
-                    fccavg[i]/=count[i]
-                    hcpavg[i]/=count[i]
+                    min_dist[i]/=count[i]
+                    numberofatoms[i]/=count[i]
+                    percent[i]/=count[i]
+                    surfacenumberofatoms[i]/=count[i]
+                    surfacepercent[i]/=count[i]
+                    seedinsurface[i]/=count[i]
+                    seedinsurfacep[i]/=count[i]
 
-        X = np.column_stack((oparray,bccavg,fccavg,hcpavg))
+        X = np.column_stack((oparray,min_dist,numberofatoms,percent,surfacenumberofatoms,surfacepercent,seedinsurface,seedinsurfacep))
         np.savetxt("averaged_data_cluster.dat",X)
-
-            
-
 
 
 def average_trajectory_md(binary,folderlistfile,vulcan=False,jobs=50,pythonscript=None):
