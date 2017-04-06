@@ -326,7 +326,7 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
             
 
             
-def combine_averages(pathtype,bintype,manual=False):
+def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobins=0):
     """
     Combine the outut of the previous function from different files into an averaged data
 
@@ -361,6 +361,20 @@ def combine_averages(pathtype,bintype,manual=False):
         seedinsurface = np.zeros(len(oparray))
         seedinsurfacep = np.zeros(len(oparray))
         count = np.zeros(len(oparray))
+    
+    elif bintype=='structhisto':
+        histox = np.linspace(self.histomin,self.histomax,self.histobins)
+        surface_bcc = np.zeros(len(self.histox))
+        surface_fcc = np.zeros(len(self.histox))
+        surface_hcp = np.zeros(len(self.histox))
+        surface_udf = np.zeros(len(self.histox))
+        seed_bcc = np.zeros(len(self.histox))
+        seed_fcc = np.zeros(len(self.histox))
+        seed_hcp = np.zeros(len(self.histox))
+        seed_udf = np.zeros(len(self.histox))
+        count=0
+
+    #struct histo doesnt need anything here
     
     for interface in interfacelist:
         interface = interface.strip()
@@ -441,7 +455,30 @@ def combine_averages(pathtype,bintype,manual=False):
                                 seedinsurfacep[j] += sseedinsurfacep[i]
                                 count += 1
 
-        
+        elif bintype=='structhisto':
+
+            #may the analysis start
+            for path in pathlist:
+                path = path.strip()
+                #points to specific path folder
+                pathpath = os.path.join(intfpath,path)
+                #generate a random identifier
+                indentifier = interface+path
+                #generate a tempname
+                filedummy = indentifier+'.histo.dat'
+                filename = os.path.join(pathpath,filedummy)
+                dist,surbcc,surfcc,surhcp,surudf,seebcc,seefcc,seehcp,seeudf = np.loadtxt(filename,unpack=True) 
+                
+                surface_bcc+=surbcc
+                surface_fcc+=surfcc
+                surface_hcp+=surhcp
+                surface_udf+=surudf
+                seed_bcc+=seebcc
+                seed_fcc+=seefcc
+                seed_hcp+=seehcp
+                seed_udf+=seeudf
+                count+=1
+
     if bintype=='struct':
 
         for i in range(len(oparray)):
@@ -468,6 +505,20 @@ def combine_averages(pathtype,bintype,manual=False):
 
         X = np.column_stack((oparray,min_dist,numberofatoms,percent,surfacenumberofatoms,surfacepercent,seedinsurface,seedinsurfacep))
         np.savetxt("averaged_data_cluster.dat",X)
+
+    elif bintype=='structhisto':
+        
+        surface_bcc/=float(count)
+        surface_fcc/=float(count)
+        surface_hcp/=float(count)
+        surface_udf/=float(count)
+        seed_bcc/=float(count)
+        seed_fcc/=float(count)
+        seed_hcp/=float(count)
+        seed_udf/=float(count)
+
+        X = np.column_stack((histox,surface_bcc,surface_fcc,surface_hcp,surface_udf,seed_bcc,seed_fcc,seed_hcp,seed_udf))
+        np.savetxt("averaged_structure_histo.dat",X)
 
 
 def average_trajectory_md(binary,folderlistfile,vulcan=False,jobs=50,pythonscript=None):
