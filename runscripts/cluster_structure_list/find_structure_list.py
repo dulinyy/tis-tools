@@ -263,7 +263,7 @@ if __name__=="__main__":
 		for m in surface.seedids:
 			fout.write(("%d ")%m)
 		fout.write("\n")
-
+		fout.flush()
 	fout.close()
 
 		

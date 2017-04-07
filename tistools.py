@@ -235,10 +235,8 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
     #hardcoded part
     workdir = '/home/users/menonsqr/temp' 
     
-    if os.path.exists(workdir):
-	os.system(('rm -rf %s')%workdir) 
-    
-    os.mkdir(workdir)
+    if not os.path.exists(workdir):
+	os.mkdir(workdir)
 
     logger.info(('binary selected: %s')%binary)
     logger.info(('pathtype selected: %s')%pathtype)
