@@ -363,15 +363,15 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
         count = np.zeros(len(oparray))
     
     elif bintype=='structhisto':
-        histox = np.linspace(self.histomin,self.histomax,self.histobins)
-        surface_bcc = np.zeros(len(self.histox))
-        surface_fcc = np.zeros(len(self.histox))
-        surface_hcp = np.zeros(len(self.histox))
-        surface_udf = np.zeros(len(self.histox))
-        seed_bcc = np.zeros(len(self.histox))
-        seed_fcc = np.zeros(len(self.histox))
-        seed_hcp = np.zeros(len(self.histox))
-        seed_udf = np.zeros(len(self.histox))
+        histox = np.linspace(histomin,histomax,histobins)
+        surface_bcc = np.zeros(len(histox))
+        surface_fcc = np.zeros(len(histox))
+        surface_hcp = np.zeros(len(histox))
+        surface_udf = np.zeros(len(histox))
+        seed_bcc = np.zeros(len(histox))
+        seed_fcc = np.zeros(len(histox))
+        seed_hcp = np.zeros(len(histox))
+        seed_udf = np.zeros(len(histox))
         count=0
 
     #struct histo doesnt need anything here
@@ -467,8 +467,10 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
                 #generate a tempname
                 filedummy = indentifier+'.histo.dat'
                 filename = os.path.join(pathpath,filedummy)
-                dist,surbcc,surfcc,surhcp,surudf,seebcc,seefcc,seehcp,seeudf = np.loadtxt(filename,unpack=True) 
-                
+		if os.path.exists(filename):
+                	dist,surbcc,surfcc,surhcp,surudf,seebcc,seefcc,seehcp,seeudf = np.loadtxt(filename,unpack=True) 
+                else:
+			continue
                 surface_bcc+=surbcc
                 surface_fcc+=surfcc
                 surface_hcp+=surhcp

@@ -197,8 +197,8 @@ if __name__=="__main__":
 
 	#set up histogram variable
 	histomin = 0.0
-	histomax = 20.00
-	histobins = 2000
+	histomax = 60.00
+	histobins = 6000
 
 	#set up histograms
 	bcchisto = Histogram(histomin,histomax,histobins)
