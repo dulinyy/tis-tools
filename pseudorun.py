@@ -204,14 +204,16 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
             histodataslices = []
             histodata = []
             count=0
-
-            for line in open(histofile,'r'):
-            histodata.append(line.strip())
-            count+=1
-            if count==12:
-                histodataslices.append(histodata)
-                histodata = []
-                count =0
+            if os.path.exists(histofile):
+                for line in open(histofile,'r'):
+                        histodata.append(line.strip())
+                        count+=1
+                        if count==12:
+                                histodataslices.append(histodata)
+                                histodata = []
+                                count =0
+            else:
+                continue
             #loooping over each slice in the trajectory
             for i in range(len(histodataslices)):
                 bccids = map(int,histodataslices[i][3].split())
@@ -318,6 +320,9 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     np.savetxt('averaged_histo_seed',histo_see)
 
 
+if __name__=='__main__':
+
+        MakeStructureHistogram('AB',manual=True,gzip=True):
 
 
             
