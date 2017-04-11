@@ -20,10 +20,10 @@ logger.propagate = False
 #workdir
 workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
 seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
-tstcluster = 400
-histomax = 60.0
+tstcluster = 404
+histomax = 40.0
 histomin = 0.0
-histobins = 6000
+histobins = 200
 
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
@@ -158,6 +158,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     hardcoded. Remove at some point.
     """
     tmpfile = 'my_tmp'
+    snapshots=0
     #set up histograms
     bcc_sur = Histogram(histomin,histomax,histobins)
     fcc_sur = Histogram(histomin,histomax,histobins)
@@ -192,7 +193,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         for path in pathlist:
             path = path.strip()
             pathpath= os.path.join(intfpath,path)
-            indentifier = interface+path
+            identifier = interface+path
             #we are in the folder now
             #we have to read the actual trajectory
             actualtraj = os.path.join(workdir,'tis','la',interface,path)
@@ -200,11 +201,15 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
             #we have the data on standby
             #time to read the output raw data histo file.
             
-            histofile = os.path.join(pathpath,(identifier+'histo.dat'))
+            histofile = os.path.join(pathpath,(identifier+'.histo.list'))
             histodataslices = []
             histodata = []
             count=0
-            if os.path.exists(histofile):
+	    #print "ll"
+            #print histofile
+	    if os.path.exists(histofile):
+		#print histofile
+		#print "kkll"
                 for line in open(histofile,'r'):
                         histodata.append(line.strip())
                         count+=1
@@ -221,16 +226,17 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                 hcpids = map(int,histodataslices[i][7].split())
                 udfids = map(int,histodataslices[i][9].split())
                 surids = map(int,histodataslices[i][11].split())
-                nucsize = len(bccids)+len(fccids)+len(hcpids)+len(udfids) 
+                nucsize = len(bccids)+len(fccids)+len(hcpids)+len(udfids)
+		#print fccids
+		#print nucsize 
                 #check if the guy should be part of histo,  and which histo
                 if (nucsize <= tstcluster+3) and (nucsize >= tstcluster-3):
                         #he is part of tst cluster
                         #write the data down to a tempfile
-
                         #write the slice
                         outfile = open(tmpfile,'w')
-                        for j in range(len(dataslices[i])):
-                                outfile.write(dataslices[i][j])
+                        for j in range(len(data[i])):
+                                outfile.write(data[i][j])
                         outfile.flush()
                         outfile.close()
 
@@ -245,9 +251,9 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
                         #delete the seed particles from the lists
                         bccids = [x for x in bccids if x not in seed.seedids]
-                        fccids = [x for x in bccids if x not in seed.seedids]
-                        hcpids = [x for x in bccids if x not in seed.seedids]
-                        udfids = [x for x in bccids if x not in seed.seedids]
+                        fccids = [x for x in fccids if x not in seed.seedids]
+                        hcpids = [x for x in hcpids if x not in seed.seedids]
+                        udfids = [x for x in udfids if x not in seed.seedids]
 
                         #set up surface class
                         surface = Seed('dummy')
@@ -299,30 +305,33 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                                 udf_sur = AssignHistograms(udf,udf_sur)
                                 udf.CalculateDistances(seed)
                                 udf_see = AssignHistograms(udf,udf_see)
-
+			snapshots+=1
     #normalise the histograms
+    
     for i in range(len(bcc_sur.histox)):
-        sum_sur = bcc_sur[i]+fcc_sur[i]+hcp_sur[i]+udf_sur[i]
-        sum_see = bcc_see[i]+fcc_see[i]+hcp_see[i]+udf_see[i]
-        bcc_sur[i]/=sum_sur
-        fcc_sur[i]/=sum_sur
-        hcp_sur[i]/=sum_sur
-        udf_sur[i]/=sum_sur
-        bcc_see[i]/=sum_see
-        fcc_sur[i]/=sum_see
-        hcp_sur[i]/=sum_see
-        udf_sur[i]/=sum_see
-
+        sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
+        sum_see = bcc_see.histo[i]+fcc_see.histo[i]+hcp_see.histo[i]+udf_see.histo[i]
+        if sum_sur>0:
+		bcc_sur.histo[i]/=sum_sur
+        	fcc_sur.histo[i]/=sum_sur
+        	hcp_sur.histo[i]/=sum_sur
+        	udf_sur.histo[i]/=sum_sur
+	if sum_see>0:
+        	bcc_see.histo[i]/=sum_see
+        	fcc_see.histo[i]/=sum_see
+        	hcp_see.histo[i]/=sum_see
+        	udf_see.histo[i]/=sum_see
+    
     histo_sur = np.column_stack((bcc_sur.histox,bcc_sur.histo,fcc_sur.histo,hcp_sur.histo,udf_sur.histo))
     histo_see = np.column_stack((bcc_see.histox,bcc_see.histo,fcc_see.histo,hcp_see.histo,udf_see.histo))
 
-    np.savetxt('averaged_histo_surface',histo_sur)
-    np.savetxt('averaged_histo_seed',histo_see)
-
+    np.savetxt('averaged_histo_surface.dat',histo_sur)
+    np.savetxt('averaged_histo_seed.dat',histo_see)
+    print snapshots
 
 if __name__=='__main__':
 
-        MakeStructureHistogram('AB',manual=True,gzip=True):
+    MakeStructureHistogram('AB',manual=False,gzip=True)
 
 
             
