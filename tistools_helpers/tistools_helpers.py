@@ -250,6 +250,18 @@ class tistools_helpers(object):
         no_jobs = i-2
         return no_jobs
 
+    def monitor_jobs_queue(self,queue):
+        """
+        monitor jobs on vulcan for a specific queue
+        """
+        queue = queue + '.q'
+        cmd = ['qstat','|','grep',queue,'|','wc','-l']
+        proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
+        out,err = proc.communicate(input="")
+        proc.wait()
+
+        return int(out)
+                
     #test binary
     def test_binary(self,binary):
         """

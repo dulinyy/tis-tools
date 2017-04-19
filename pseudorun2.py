@@ -114,9 +114,7 @@ class Histogram(object):
         distance = atom[4]
 	#print distance
 	#print atom[0]
-        value = (float(self.histobins)*(float(distance) - float(self.histomin)))/(float(self.histomax-self.histomin))
-	#print value
-        value = int(round(value))
+        value = int(self.histosize*(float(value) - float(self.histomin))/(float(self.histomax-self.histomin)))
 	#print value
 	if value<len(self.histo):
         	self.histo[value]+=addvalue
@@ -124,10 +122,14 @@ class Histogram(object):
 		print "weird value"
 		print value
 		print distance
+    
+    def getBoxX(self,hbox):
+        x = (float(hbox)*float(self.histomax-self.histomin) )/float(self.histosize) + float(self.histomin)
+        return x
 
 
 #function to assign histograms
-def AssignHistograms(atomsclass,histogram,nucsize):
+def AssignHistograms(atomsclass,histogram,addvalue):
     counter=0
     for atom in atomsclass.atoms:
         counter+=1
@@ -351,8 +353,12 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 			snapshots+=1
 			if snapshots>maxconfs:
 				break
-    #normalise the histograms
     
+    #normalise the histograms
+    #histogram x values
+    histox_sur = np.zeros(len(bcc_sur.histox))
+    histox_see = np.zeros(len(bcc_sur.histox))
+
     for i in range(len(bcc_sur.histox)):
         #sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
         sum_see = bcc_see.histo[i]+fcc_see.histo[i]+hcp_see.histo[i]+udf_see.histo[i]
@@ -361,14 +367,18 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         fcc_sur.histo[i]/=float(snapshots)
         hcp_sur.histo[i]/=float(snapshots)
         udf_sur.histo[i]/=float(snapshots)
+
 	if sum_see>0:
         	bcc_see.histo[i]/=float(sum_see)
         	fcc_see.histo[i]/=float(sum_see)
         	hcp_see.histo[i]/=float(sum_see)
         	udf_see.histo[i]/=float(sum_see)
-    
-    histo_sur = np.column_stack((bcc_sur.histox,bcc_sur.histo,fcc_sur.histo,hcp_sur.histo,udf_sur.histo))
-    histo_see = np.column_stack((bcc_see.histox,bcc_see.histo,fcc_see.histo,hcp_see.histo,udf_see.histo))
+        
+        histox_sur[i] = bcc_sur.getBoxX(i)
+        histox_see[i] = bcc_see.getBoxX(i)
+
+    histo_sur = np.column_stack((histox_sur,bcc_sur.histo,fcc_sur.histo,hcp_sur.histo,udf_sur.histo))
+    histo_see = np.column_stack((histox_see,bcc_see.histo,fcc_see.histo,hcp_see.histo,udf_see.histo))
 
     np.savetxt('averaged_histo_surface.dat',histo_sur)
     np.savetxt('averaged_histo_seed.dat',histo_see)
