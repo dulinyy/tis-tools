@@ -147,9 +147,9 @@ if __name__=="__main__":
 	tmpname = sys.argv[3]
 	binary = sys.argv[1]
 	
-	seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat' 
-	seedsurfaceaddress = '/home/users/menonsqr/SeedFCC19/seedsurface.dat'
-	seeddump = '/home/users/menonsqr/SeedFCC19/conf.dump'	
+	seedfileaddress = '/home/users/menonsqr/SeedHCP19/seed.dat' 
+	seedsurfaceaddress = '/home/users/menonsqr/SeedHCP19/seedsurface.dat'
+	seeddump = '/home/users/menonsqr/SeedHCP19/conf.dump'	
 
 	gzip = sys.argv[5]
 

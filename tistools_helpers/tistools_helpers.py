@@ -163,13 +163,17 @@ class tistools_helpers(object):
         """
         data = []
         datasliced = []
-        if gzip==False:
+        #if gzip==False:
+	trajgz = traj + '.gz'
+        if os.path.exists(traj):
             infile = open(traj,'r')
             for line in infile:
                 data.append(line)
-        elif gzip==True:
+        elif os.path.exists(trajgz):
             for line in self.readgzlines(traj):
                 data.append(line)
+        else:
+	    print "file not found"
 
         nlines = len(data)
         natoms = int(data[3])

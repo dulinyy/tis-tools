@@ -1,5 +1,5 @@
 """
-Sub file used for op calculation; to be used for normal md paths
+Sub file used for op calculation; to be used for tis paths
 Have to overwrite to make it nicer
 """
 
@@ -8,12 +8,27 @@ import sys
 import subprocess as sub
 import numpy as np
 import tistools as tt
+from  tistools_helpers import tistools_helpers
+import logging
+
+#SRM:set up logger for the general error messages
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("analysis.log")
+formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+logger.propagate = False 
+
+#create helpers class
+helpers = tistools_helpers.tistools_helpers()
+
 
 #calculates the binary value over a trajectory and writes to a file of choice
-def calc_trajectory(binary,traj,tmpname,filename):
-    datacmb = tt.separate_traj(traj)
+def calc_trajectory(binary,traj,tmpname,filename,gzip=False):
+    datacmb = helpers.separate_traj(traj,gzip=True)
     opfile = open(filename,'w')
-    tmpfilelist = []
+    #tmpfilelist = []
     qtraj = []
     for i in range(len(datacmb)):
         tmpfile = tmpname+str(i)+".dat"
@@ -22,23 +37,23 @@ def calc_trajectory(binary,traj,tmpname,filename):
             outfile.write(datacmb[i][j])
         outfile.flush()
         outfile.close()
-        tmpfilelist.append(tmpfile)
+        #tmpfilelist.append(tmpfile)
         
-    i = 0
-    for tmp in tmpfilelist: 
+    #i = 0
+    #for tmp in tmpfilelist: 
         cmd = []
         cmd.append(binary)
-        cmd.append(tmp)
+        cmd.append(tmpfile)
         proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
         out,err = proc.communicate(input="")
         proc.wait()
         qd = out
-        os.system(("rm %s")% tmp)
+        os.system(("rm %s")% tmpfile)
         
         opfile.write(("%s")%(qd))
         opfile.flush()
         qtraj.append(qd)
-        i+=1
+        #i+=1
 
     opfile.close()
 
@@ -48,6 +63,12 @@ if __name__=="__main__":
     traj = sys.argv[2]
     tmpname = sys.argv[3]
     filename = sys.argv[4]
+    gzip = sys.argv[5]
 
-    calc_trajectory(binary,traj,tmpname,filename)
+    if gzip=='False':
+        gzip=False
+    elif gzip=='True':
+        gzip=True
+
+    calc_trajectory(binary,traj,tmpname,filename,gzip=gzip)
 

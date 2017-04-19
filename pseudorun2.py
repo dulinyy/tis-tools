@@ -20,12 +20,14 @@ logger.propagate = False
 #workdir
 workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
 seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
-tstcluster = 404
-histomax = 40.0
-histomin = 0.0
-histobins = 100
-maxconf = 50
-
+tstcluster = 690
+#seedhistomax = 25.0
+#seedhistomin = 0.0
+#seedhistobins = 200
+surfacehistomax = 10.0
+surfacehistomin = 0.0
+surfacehistobins = 100
+maxconfs=200
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -76,7 +78,8 @@ class Seed(object):
 
     
     def CalculateDistances(self,otheratoms):
-        for atom in self.atoms:
+        loo = []
+	for atom in self.atoms:
             dist = []
             for oatom in otheratoms.atoms:
                 #print 'seed'
@@ -87,8 +90,14 @@ class Seed(object):
                 distance = np.sqrt((a-atom[1])**2 + (b-atom[2])**2 + (c-atom[3])**2 )
                 dist.append(distance)
             mindist=min(dist)
-            atom[4]=mindist
 	    #print mindist
+	    #print (mindist<1e-5)
+	    if mindist<1e-5:
+		#print "oh"
+		mindist=0.00
+            atom[4]=mindist
+	    loo.append(mindist)
+	return loo
 
 
 #class for histogram
@@ -103,17 +112,30 @@ class Histogram(object):
 
     def addAtomtoHisto(self,atom,addvalue):
         distance = atom[4]
+	#print distance
+	#print atom[0]
         value = (float(self.histobins)*(float(distance) - float(self.histomin)))/(float(self.histomax-self.histomin))
+	#print value
         value = int(round(value))
+	#print value
 	if value<len(self.histo):
         	self.histo[value]+=addvalue
+	else:
+		print "weird value"
+		print value
+		print distance
 
 
 #function to assign histograms
-def AssignHistograms(atomsclass,histogram):
+def AssignHistograms(atomsclass,histogram,nucsize):
+    counter=0
     for atom in atomsclass.atoms:
-        addvalue = 1.00
+        counter+=1
+        addvalue = 1.00/float(nucsize)
         histogram.addAtomtoHisto(atom,addvalue)
+	#print atom[4]
+    #print counter
+    #print nucsize
     return histogram
 
 
@@ -161,17 +183,17 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     hardcoded. Remove at some point.
     """
     tmpfile = 'my_tmp'
-    snapshots=0
+    snapshots=1
     #set up histograms
-    bcc_sur = Histogram(histomin,histomax,histobins)
-    fcc_sur = Histogram(histomin,histomax,histobins)
-    hcp_sur = Histogram(histomin,histomax,histobins)
-    udf_sur = Histogram(histomin,histomax,histobins)
+    bcc_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    fcc_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    hcp_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    udf_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
 
-    bcc_see = Histogram(histomin,histomax,histobins)
-    fcc_see = Histogram(histomin,histomax,histobins)
-    hcp_see = Histogram(histomin,histomax,histobins)
-    udf_see = Histogram(histomin,histomax,histobins)
+    bcc_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    fcc_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    hcp_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    udf_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
     
     if manual==False:
         interfacelist = helpers.generate_intflist()
@@ -180,7 +202,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     
 
     for interface in interfacelist:
-	if snapshots>maxconf:
+	if snapshots>maxconfs:
 		break
         interface = interface.strip()
         intfpath = os.path.join(os.getcwd(),"tis","la",interface)
@@ -196,7 +218,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
         #may the analysis start
         for path in pathlist:
-	    if snapshots>maxconf:
+            if snapshots>maxconfs:
 		break
             path = path.strip()
             pathpath= os.path.join(intfpath,path)
@@ -228,6 +250,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                 continue
             #loooping over each slice in the trajectory
             for i in range(len(histodataslices)):
+		#print snapshots
                 bccids = map(int,histodataslices[i][3].split())
                 fccids = map(int,histodataslices[i][5].split())
                 hcpids = map(int,histodataslices[i][7].split())
@@ -238,7 +261,6 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 		#print nucsize 
                 #check if the guy should be part of histo,  and which histo
                 if (nucsize <= tstcluster+3) and (nucsize >= tstcluster-3):
-			print nucsize
                         #he is part of tst cluster
                         #write the data down to a tempfile
                         #write the slice
@@ -262,7 +284,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                         fccids = [x for x in fccids if x not in seed.seedids]
                         hcpids = [x for x in hcpids if x not in seed.seedids]
                         udfids = [x for x in udfids if x not in seed.seedids]
-
+			
                         #set up surface class
                         surface = Seed('dummy')
                         surface.ReadSeed(read=False,idlist=surids)
@@ -292,44 +314,58 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                         udf.ReadSeed(read=False,idlist=udfids)
                         if udf.exists:
                                 udf.PopulateSeed(atoms,read=False)
-
+			
+			#print len(fccids)
+			#print len(nfccids)
+			#print len(fcc.atoms)
+			extdist = []
+			#extdist2 = []
                         if bcc.exists:
-                                bcc.CalculateDistances(surface)
-                                bcc_sur = AssignHistograms(bcc,bcc_sur)
-                                bcc.CalculateDistances(seed)
-                                bcc_see = AssignHistograms(bcc,bcc_see)
+				#print "BCC"
+                                extdist.append(bcc.CalculateDistances(surface))
+				#print "BCC"
+                                bcc_sur = AssignHistograms(bcc,bcc_sur,nucsize)
+                                #extdist2.append(bcc.CalculateDistances(seed))
+                                bcc_see = AssignHistograms(bcc,bcc_see,1)
                         if fcc.exists:
-                                fcc.CalculateDistances(surface)
-                                fcc_sur = AssignHistograms(fcc,fcc_sur)
-                                fcc.CalculateDistances(seed)
-                                fcc_see = AssignHistograms(fcc,fcc_see)
+                                #print "FCC"
+				extdist.append(fcc.CalculateDistances(surface))
+				#print "FCC"
+                                fcc_sur = AssignHistograms(fcc,fcc_sur,nucsize)
+                                #extdist2.append(fcc.CalculateDistances(seed))
+                                fcc_see = AssignHistograms(fcc,fcc_see,1)
                         if hcp.exists:
-                                hcp.CalculateDistances(surface)
-                                hcp_sur = AssignHistograms(hcp,hcp_sur)
-                                hcp.CalculateDistances(seed)
-                                hcp_see = AssignHistograms(hcp,hcp_see)
+                                #print "HCP"
+				extdist.append(hcp.CalculateDistances(surface))
+				#print "HCP"
+                                hcp_sur = AssignHistograms(hcp,hcp_sur,nucsize)
+                                #extdist2.append(hcp.CalculateDistances(seed))
+                                hcp_see = AssignHistograms(hcp,hcp_see,1)
                         if udf.exists:
-                                udf.CalculateDistances(surface)
-                                udf_sur = AssignHistograms(udf,udf_sur)
-                                udf.CalculateDistances(seed)
-                                udf_see = AssignHistograms(udf,udf_see)
+				#print "UDF"
+                                extdist.append(udf.CalculateDistances(surface))
+				#print "UDF"
+                                udf_sur = AssignHistograms(udf,udf_sur,nucsize)
+                                #extdist2.append(udf.CalculateDistances(seed))
+                                udf_see = AssignHistograms(udf,udf_see,1)
 			snapshots+=1
-			print snapshots
+			if snapshots>maxconfs:
+				break
     #normalise the histograms
     
     for i in range(len(bcc_sur.histox)):
-        sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
+        #sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
         sum_see = bcc_see.histo[i]+fcc_see.histo[i]+hcp_see.histo[i]+udf_see.histo[i]
-        if sum_sur>0:
-		bcc_sur.histo[i]/=sum_sur
-        	fcc_sur.histo[i]/=sum_sur
-        	hcp_sur.histo[i]/=sum_sur
-        	udf_sur.histo[i]/=sum_sur
+        #if sum_sur>0:
+	bcc_sur.histo[i]/=float(snapshots)
+        fcc_sur.histo[i]/=float(snapshots)
+        hcp_sur.histo[i]/=float(snapshots)
+        udf_sur.histo[i]/=float(snapshots)
 	if sum_see>0:
-        	bcc_see.histo[i]/=sum_see
-        	fcc_see.histo[i]/=sum_see
-        	hcp_see.histo[i]/=sum_see
-        	udf_see.histo[i]/=sum_see
+        	bcc_see.histo[i]/=float(sum_see)
+        	fcc_see.histo[i]/=float(sum_see)
+        	hcp_see.histo[i]/=float(sum_see)
+        	udf_see.histo[i]/=float(sum_see)
     
     histo_sur = np.column_stack((bcc_sur.histox,bcc_sur.histo,fcc_sur.histo,hcp_sur.histo,udf_sur.histo))
     histo_see = np.column_stack((bcc_see.histox,bcc_see.histo,fcc_see.histo,hcp_see.histo,udf_see.histo))
@@ -337,6 +373,12 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     np.savetxt('averaged_histo_surface.dat',histo_sur)
     np.savetxt('averaged_histo_seed.dat',histo_see)
     print snapshots
+    extdist = sum(extdist,[])
+    #extdist2 = sum(extdist2,[])
+    print max(extdist)
+    print min(extdist)
+    #print max(extdist2)
+    #print min(extdist2)
 
 if __name__=='__main__':
 

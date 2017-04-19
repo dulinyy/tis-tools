@@ -159,7 +159,7 @@ if __name__=="__main__":
 	binary = sys.argv[1]
 	gzip = sys.argv[5]	
 	
-	deletefiles=True
+	deletefiles=False
 	
 
 	if gzip=='True':
@@ -180,7 +180,8 @@ if __name__=="__main__":
 	#data = helpers.combine_paths_return(traj)
 
 	fout = open(outputfile,'w')
-
+	outputfile2 = outputfile + 'opd.dat'
+	fout2 = open(outputfile2,'w')
 
     	for i in range(len(data)):
 
@@ -207,7 +208,9 @@ if __name__=="__main__":
         	ffcc = out[2]
         	fhcp = out[3]
         	fudf = out[4]
-        	
+        	fout2.write(distribution)
+
+		fout2.flush()
 	        #read the atoms in
 	        atoms = read_alles(tmpfile)
 	        os.system(('rm %s')% tmpfile) 
@@ -265,7 +268,7 @@ if __name__=="__main__":
 		fout.write("\n")
 		fout.flush()
 	fout.close()
-
+	fout2.close()
 		
 		
 		

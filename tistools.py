@@ -400,12 +400,13 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
                 #generate a random identifier
                 indentifier = interface+path
                 #generate a tempname
-                filedummy = indentifier+'.opd.dat'
+                filedummy = indentifier+'.histo.listopd.dat'
                 #a dummy file
                 filename = os.path.join(pathpath,filedummy)
 
                 #next hardcoded part
-                if os.path.exists(filename):
+                if os.path.isfile(filename) and os.path.getsize(filename) > 0:
+		#if os.path.exists(filename):
                         op,bcc,fcc,hcp,udf = np.loadtxt(filename,unpack=True)
                 else:
                         continue
@@ -466,6 +467,7 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
                 filedummy = indentifier+'.histo.dat'
                 filename = os.path.join(pathpath,filedummy)
 		if os.path.exists(filename):
+
                 	dist,surbcc,surfcc,surhcp,surudf,seebcc,seefcc,seehcp,seeudf = np.loadtxt(filename,unpack=True) 
                 else:
 			continue
