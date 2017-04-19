@@ -18,16 +18,16 @@ logger.propagate = False
 
 
 #workdir
-workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
-seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
-tstcluster = 690
+workdir = '/home/users/menonsqr/storage/HCP19/tis_run'
+seedfileaddress = '/home/users/menonsqr/SeedHCP19/seed.dat'
+tstcluster = 700
 #seedhistomax = 25.0
 #seedhistomin = 0.0
 #seedhistobins = 200
 surfacehistomax = 10.0
 surfacehistomin = 0.0
 surfacehistobins = 100
-maxconfs=200
+maxconfs=1000
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -114,7 +114,7 @@ class Histogram(object):
         distance = atom[4]
 	#print distance
 	#print atom[0]
-        value = int(self.histosize*(float(value) - float(self.histomin))/(float(self.histomax-self.histomin)))
+        value = int(self.histobins*(float(distance) - float(self.histomin))/(float(self.histomax-self.histomin)))
 	#print value
 	if value<len(self.histo):
         	self.histo[value]+=addvalue
@@ -124,12 +124,12 @@ class Histogram(object):
 		print distance
     
     def getBoxX(self,hbox):
-        x = (float(hbox)*float(self.histomax-self.histomin) )/float(self.histosize) + float(self.histomin)
+        x = (float(hbox)*float(self.histomax-self.histomin) )/float(self.histobins) + float(self.histomin)
         return x
 
 
 #function to assign histograms
-def AssignHistograms(atomsclass,histogram,addvalue):
+def AssignHistograms(atomsclass,histogram,nucsize):
     counter=0
     for atom in atomsclass.atoms:
         counter+=1
@@ -379,9 +379,11 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
     histo_sur = np.column_stack((histox_sur,bcc_sur.histo,fcc_sur.histo,hcp_sur.histo,udf_sur.histo))
     histo_see = np.column_stack((histox_see,bcc_see.histo,fcc_see.histo,hcp_see.histo,udf_see.histo))
-
-    np.savetxt('averaged_histo_surface.dat',histo_sur)
-    np.savetxt('averaged_histo_seed.dat',histo_see)
+    
+    savefile1 = 'averaged_histo_frac_'+str(tstcluster)+'.dat'
+    savefile2 = 'averaged_histo_nos_'+str(tstcluster)+'.dat'
+    np.savetxt(savefile1,histo_sur)
+    np.savetxt(savefile2,histo_see)
     print snapshots
     extdist = sum(extdist,[])
     #extdist2 = sum(extdist2,[])
@@ -392,7 +394,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
 if __name__=='__main__':
 
-    MakeStructureHistogram('AB',manual=True,gzip=True)
+    MakeStructureHistogram('AB',manual=False,gzip=True)
 
 
             

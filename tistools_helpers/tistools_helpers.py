@@ -214,6 +214,7 @@ class tistools_helpers(object):
         of.write("#$ -cwd\n")
         of.write("#$ -l h_rt=05:59:00\n")
         of.write(("#$ -l qname=%s\n")%queue)
+        of.write("#$ -l h_vmem=12G\n")
         of.write("#$ -j y\n")
         of.write("#$ -R y\n")
         of.write("#$ -pe smp " + str(cores) + "\n")
