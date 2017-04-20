@@ -18,9 +18,9 @@ logger.propagate = False
 
 
 #workdir
-workdir = '/home/users/menonsqr/storage/HCP19/tis_run'
-seedfileaddress = '/home/users/menonsqr/SeedHCP19/seed.dat'
-tstcluster = 700
+workdir = '/home/users/menonsqr/NS43/tis_run'
+seedfileaddress = '/home/users/menonsqr/SeedFCC43/seed.dat'
+tstcluster = 200
 #seedhistomax = 25.0
 #seedhistomin = 0.0
 #seedhistobins = 200

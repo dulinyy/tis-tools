@@ -20,7 +20,7 @@ logger.propagate = False
 
 histomax = 700.0
 histomin = 0.0
-histobins = 100
+histobins = 300
 maxconfs=1000
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
@@ -37,8 +37,9 @@ class Histogram(object):
         self.histox = np.linspace(self.histomin,self.histomax,self.histobins)
 
     def addAtomtoHisto(self,nucsize,addvalue):
-
+	#print nucsize
         value = int(self.histobins*(float(nucsize) - float(self.histomin))/(float(self.histomax-self.histomin)))
+	#print value
 	#print value
 	if value<len(self.histo):
         	self.histo[value]+=addvalue
@@ -46,7 +47,8 @@ class Histogram(object):
 		print "weird value"
 		print value
 		print nucsize
-    
+    	return value
+	
     def getBoxX(self,hbox):
         x = (float(hbox)*float(self.histomax-self.histomin) )/float(self.histobins) + float(self.histomin)
         return x
@@ -62,7 +64,7 @@ def MakeStructureHistogram(pathtype,manual=False):
     seed_nuc = Histogram(histomin,histomax,histobins)
     seed_sur = Histogram(histomin,histomax,histobins)
     seed_dist = Histogram(histomin,histomax,histobins)
-    count=0
+    count=np.zeros(histobins)
 
     if manual==False:
         interfacelist = helpers.generate_intflist()
@@ -92,18 +94,21 @@ def MakeStructureHistogram(pathtype,manual=False):
             histofile = os.path.join(pathpath,(identifier+'.clu.dat'))
 	    
             if os.path.exists(histofile):
-                nucsize,mindist,seedincluster,seedinsurface = np.loadtxt(histofile,comments='#',usecols=(1,2,3,7),unpack=True)
+                nucsize,mindist,seedincluster,a,b,c,seedinsurface,d = np.loadtxt(histofile,comments='#',unpack=True)
+		#print nucsize
                 nucsize = nucsize.astype(int)
+		#print nucsize
                 seedincluster = seedincluster.astype(int)
                 seedinsurface = seedinsurface.astype(int)
             else:
                 continue
             #loooping over each slice in the trajectory
             for i in range(len(nucsize)):
-                seed_nuc.addAtomtoHisto(nucsize[i],seedincluster[i])
-                seed_sur.addAtomtoHisto(nucsize[i],seedinsurface[i])
-                seed_dist.addAtomtoHisto(nucsize[i],mindist[i])
-                count+=1
+                value = seed_nuc.addAtomtoHisto(nucsize[i],seedincluster[i])
+                value = seed_sur.addAtomtoHisto(nucsize[i],seedinsurface[i])
+                value = seed_dist.addAtomtoHisto(nucsize[i],mindist[i])
+                if value<len(count):
+			count[value]+=1
     
     #normalise the histograms
     #histogram x values
@@ -111,18 +116,17 @@ def MakeStructureHistogram(pathtype,manual=False):
 
     for i in range(len(seed_nuc.histox)):
         
-        #if sum_sur>0:
-	seed_nuc.histo[i]/=float(count)
-        seed_sur.histo[i]/=float(count)
-        seed_dist.histo[i]/=float(count)
+        if count[i]>0:
+		seed_nuc.histo[i]/=float(count[i])
+        	seed_sur.histo[i]/=float(count[i])
+        	seed_dist.histo[i]/=float(count[i])
         
         histox[i] = seed_nuc.getBoxX(i)
 
-    histo_nuc = np.column_stack((histox,seed_nuc,seed_sur,seed_dist))
+    histo_sur = np.column_stack((histox,seed_nuc.histo,seed_sur.histo,seed_dist.histo))
   
     np.savetxt('averaged_cluster_histo.dat',histo_sur)
   
-    print count
  
 if __name__=='__main__':
 
