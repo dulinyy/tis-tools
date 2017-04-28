@@ -400,7 +400,7 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
                 #generate a random identifier
                 indentifier = interface+path
                 #generate a tempname
-                filedummy = indentifier+'.histo.listopd.dat'
+                filedummy = indentifier+'.opd.surface'
                 #a dummy file
                 filename = os.path.join(pathpath,filedummy)
 

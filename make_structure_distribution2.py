@@ -17,41 +17,12 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = False 
 
 #seedfile
-seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
+seedfileaddress = '/home/users/menonsqr/SeedFCC43/seed.dat'
 
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
-#histogram variables
-histomin = 0.0
-histomax = 800.00
-histobins = 200
 
-#class for histogram
-class Histogram(object):
-    
-    def __init__(self,histomin,histomax,histobins):
-        self.histomax = histomax
-        self.histomin = histomin
-        self.histobins = histobins
-        self.histo = np.zeros(histobins)
-        self.histox = range(histobins)
-
-
-    def addAtomtoHisto(self,putvalue,addvalue):
-        #print distance
-        #print atom[0]
-        value = int(self.histobins*(float(putvalue) - float(self.histomin))/(float(self.histomax-self.histomin)))
-        #print value
-        if value<len(self.histo):
-                self.histo[value]+=addvalue
-        else:
-                print "weird value"
-                print value
-                print putvalue
-    
-    def getBoxX(self,hbox):
-        x = (float(hbox)*float(self.histomax-self.histomin) )/float(self.histobins) + float(self.histomin)
 
 #main function that is to be called
 def MakeStructureHistogram(pathtype,manual=False,gzip=False):
@@ -60,29 +31,8 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     hardcoded. Remove at some point.
     """
 
-    #read seedids in an array
     seedids = np.loadtxt(seedfileaddress,dtype=int,unpack=True)
-    histopoints = np.zeros(histobins)
 
-    #set up histograms
-    #for normal without seed
-    nbcc = Histogram(histomin,histomax,histobins)
-    nfcc = Histogram(histomin,histomax,histobins)
-    nhcp = Histogram(histomin,histomax,histobins)
-    nudf = Histogram(histomin,histomax,histobins)
-    #for core without seed
-    cbcc = Histogram(histomin,histomax,histobins)
-    cfcc = Histogram(histomin,histomax,histobins)
-    chcp = Histogram(histomin,histomax,histobins)
-    cudf = Histogram(histomin,histomax,histobins)
-    #for surface without seed
-    sbcc = Histogram(histomin,histomax,histobins)
-    sfcc = Histogram(histomin,histomax,histobins)
-    shcp = Histogram(histomin,histomax,histobins)
-    sudf = Histogram(histomin,histomax,histobins)
-
-    #for normalizing histograms later
-    norm = np.zeros(histobins)
 
     #read interfaces
     if manual==False:
@@ -112,8 +62,15 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
             pathpath= os.path.join(intfpath,path)
             identifier = interface+path
             #we are in the folder now
-
+	    nwritefile = os.path.join(pathpath,(identifier+'.opd.normal'))
+            cwritefile = os.path.join(pathpath,(identifier+'.opd.core'))
+	    swritefile = os.path.join(pathpath,(identifier+'.opd.surface'))
             histofile = os.path.join(pathpath,(identifier+'.histo.list'))
+	    nfout = open(nwritefile,'w')
+	    cfout = open(cwritefile,'w')
+	    sfout = open(swritefile,'w')	
+
+
             histodataslices = []
             histodata = []
             count=0
@@ -162,12 +119,13 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                         fnhcp = 0
                         fnudf = 0
 
-                #add to histo
-                value = nbcc.addAtomtoHisto(nucsize,fnbcc)
-                value = nfcc.addAtomtoHisto(nucsize,fnfcc)
-                value = nhcp.addAtomtoHisto(nucsize,fnhcp)
-                value = nudf.addAtomtoHisto(nucsize,fnudf)
-
+                #add to hist
+		#print str(nucsize)
+		#print str(fnbcc)
+		#print str(fnfcc)
+		#print str(fnhcp)
+		#print str(fnudf)
+		nfout.write(("%d %.4f %.4f %.4f %.4f\n")%(nucsize,fnbcc,fnfcc,fnhcp,fnudf))
                 
                 #now for core
                 cbccids = [x for x in bccids if x not in surids]
@@ -190,10 +148,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                         fcudf = 0
 
                 #add to histo
-                value = cbcc.addAtomtoHisto(nucsize,fcbcc)
-                value = cfcc.addAtomtoHisto(nucsize,fcfcc)
-                value = chcp.addAtomtoHisto(nucsize,fchcp)
-                value = cudf.addAtomtoHisto(nucsize,fcudf)
+		cfout.write(("%d %.4f %.4f %.4f %.4f\n")%(nucsize,fcbcc,fcfcc,fchcp,fcudf))
 
                 #for surface
                 sbccids = [x for x in bccids if x in surids]
@@ -217,54 +172,17 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
 		
                 #add to histo
-                value = sbcc.addAtomtoHisto(nucsize,fsbcc)
-                value = sfcc.addAtomtoHisto(nucsize,fsfcc)
-                value = shcp.addAtomtoHisto(nucsize,fshcp)
-                value = sudf.addAtomtoHisto(nucsize,fsudf)
-
-                if value < len(norm):
-                        norm[value]+=1
+		sfout.write(("%d %.4f %.4f %.4f %.4f\n")%(nucsize,fsbcc,fsfcc,fshcp,fsudf))
+	    nfout.close()
+	    sfout.close()
+	    cfout.close()
 
 
-    #normalise histograms
-    for i in range(histobins):
-	'''
-        if norm[i]>0:
-                nbcc.histo[i]/=float(norm[i])
-                nfcc.histo[i]/=float(norm[i])
-                nhcp.histo[i]/=float(norm[i])
-                nudf.histo[i]/=float(norm[i])
-
-                cbcc.histo[i]/=float(norm[i])
-                cfcc.histo[i]/=float(norm[i])
-                chcp.histo[i]/=float(norm[i])
-                cudf.histo[i]/=float(norm[i])
-
-                sbcc.histo[i]/=float(norm[i])
-                sfcc.histo[i]/=float(norm[i])
-                shcp.histo[i]/=float(norm[i])
-                sudf.histo[i]/=float(norm[i])
-           '''       
-	histopoints[i] = sbcc.getBoxX(i)
-
-
-    savefile1 = 'averaged_histo_structure_normal.dat'
-    savefile2 = 'averaged_histo_structure_core.dat'
-    savefile3 = 'averaged_histo_structure_surface.dat'
-
-    #stack the histos
-    nhisto = np.column_stack((histopoints,nbcc.histo,nfcc.histo,nhcp.histo,nudf.histo))
-    chisto = np.column_stack((histopoints,cbcc.histo,cfcc.histo,chcp.histo,cudf.histo))
-    shisto = np.column_stack((histopoints,sbcc.histo,sfcc.histo,shcp.histo,sudf.histo))
-
-    np.savetxt(savefile1,nhisto)
-    np.savetxt(savefile2,chisto)
-    np.savetxt(savefile3,shisto)
 
 
 if __name__=='__main__':
 
-    MakeStructureHistogram('AB',manual=True,gzip=True)
+    MakeStructureHistogram('AB',manual=False,gzip=True)
 
 
             
