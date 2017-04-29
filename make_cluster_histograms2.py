@@ -18,10 +18,14 @@ logger.propagate = False
 
 
 
-histomax = 700.0
+histomax = 19.0
 histomin = 0.0
-histobins = 300
-maxconfs=1000
+histobins = 19
+dhistomax = 20.0
+dhistomin = 0.0
+dhistobins = 40
+maxconfs=10
+tstcluster = 404
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -60,11 +64,12 @@ def MakeStructureHistogram(pathtype,manual=False):
     special function to make histograms
     hardcoded. Remove at some point.
     """
+    total=0
     #set up histograms
     seed_nuc = Histogram(histomin,histomax,histobins)
-    seed_sur = Histogram(histomin,histomax,histobins)
-    seed_dist = Histogram(histomin,histomax,histobins)
+    seed_dist = Histogram(dhistomin,dhistomax,dhistobins)
     count=np.zeros(histobins)
+    dcount=np.zeros(dhistobins)
 
     if manual==False:
         interfacelist = helpers.generate_intflist()
@@ -73,6 +78,8 @@ def MakeStructureHistogram(pathtype,manual=False):
     
 
     for interface in interfacelist:
+        if total>maxconfs:
+                break
         interface = interface.strip()
         intfpath = os.path.join(os.getcwd(),"tis","la",interface)
         intfpath = intfpath.strip()
@@ -87,6 +94,8 @@ def MakeStructureHistogram(pathtype,manual=False):
 
         #may the analysis start
         for path in pathlist:
+            if total>maxconfs:
+                break
             path = path.strip()
             pathpath= os.path.join(intfpath,path)
             identifier = interface+path
@@ -103,31 +112,45 @@ def MakeStructureHistogram(pathtype,manual=False):
             else:
                 continue
             #loooping over each slice in the trajectory
-            
             for i in range(len(nucsize)):
-                seedinsurfaceaddvalue = float(seedinsurface[i])/float(seedincluster[i])
-                value = seed_nuc.addAtomtoHisto(nucsize[i],seedincluster[i])
-                value = seed_sur.addAtomtoHisto(nucsize[i],seedinsurfaceaddvalue)
-                value = seed_dist.addAtomtoHisto(nucsize[i],mindist[i])
-                if value<len(count):
-			count[value]+=1
+                if (nucsize[i] <= tstcluster+3) and (nucsize[i] >= tstcluster-3):
+                        if total>maxconfs:
+                                break
+                        value = seed_nuc.addAtomtoHisto(seedincluster[i],1)
+                        if value<len(count):
+                                count[value]+=1
+                        value = seed_dist.addAtomtoHisto(mindist[i],1)
+                        if value<len(dcount):
+                                dcount[value]+=1
+                        total+=1
+
+
     
     #normalise the histograms
     #histogram x values
     histox = np.zeros(len(seed_nuc.histox))
+    dhistox = np.zeros(len(seed_dist.histox))
 
     for i in range(len(seed_nuc.histox)):
         
         if count[i]>0:
 		seed_nuc.histo[i]/=float(count[i])
-        	seed_sur.histo[i]/=float(count[i])
-        	seed_dist.histo[i]/=float(count[i])
         
         histox[i] = seed_nuc.getBoxX(i)
 
-    histo_sur = np.column_stack((histox,seed_nuc.histo,seed_sur.histo,seed_dist.histo))
+    for i in range(len(seed_dist.histox)):
+        
+        if dcount[i]>0:
+                seed_dist.histo[i]/=float(dcount[i])
+
+        
+        dhistox[i] = seed_dist.getBoxX(i)
+
+    histo_nuc = np.column_stack((histox,seed_nuc.histo))
+    histo_dist = np.column_stack((dhistox,seed_dist.histo))
   
-    np.savetxt('averaged_cluster_histo.dat',histo_sur)
+    np.savetxt('averaged_cluster_nuc.dat',histo_nuc)
+    np.savetxt('averaged_cluster_dist.dat',histo_dist)
   
  
 if __name__=='__main__':
