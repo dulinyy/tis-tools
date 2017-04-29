@@ -71,4 +71,10 @@ if __name__=="__main__":
         gzip=True
 
     calc_trajectory(binary,traj,tmpname,filename,gzip=gzip)
-
+    
+    if deletefiles:
+    	forpath = os.path.join(traj,'forward')
+        bakpath = os.path.join(traj,'backward')
+        os.system(('rm -rf %s')%(forpath))
+        os.system(('rm -rf %s')%(bakpath))
+ 

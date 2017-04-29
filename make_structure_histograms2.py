@@ -1,3 +1,4 @@
+    
 import os
 import sys
 import subprocess as sub
@@ -19,9 +20,13 @@ logger.propagate = False
 #workdir
 workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
 seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
-binary = '/home/users/menonsqr/tis-tools.git/trunk/runscripts/make_q4q6_dist/orderparameter/main'
 tstcluster = 404
-
+#seedhistomax = 25.0
+#seedhistomin = 0.0
+#seedhistobins = 200
+surfacehistomax = 30.0
+surfacehistomin = 0.0
+surfacehistobins = 300
 maxconfs=100
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
@@ -43,13 +48,13 @@ class Seed(object):
                 if os.path.isfile(self.seedfile) and os.path.getsize(self.seedfile) > 0:
                         for line in open(self.seedfile):
                                 self.seedids.append(int(line.strip()))
-                        self.atoms=np.empty([len(self.seedids),7])
+                        self.atoms=np.empty([len(self.seedids),5])
                 else:
                         self.exists=False
         else:
                 self.seedids=idlist
                 if len(self.seedids)>0:
-                        self.atoms=np.empty([len(self.seedids),7])
+                        self.atoms=np.empty([len(self.seedids),5])
                 else:
                         self.exists=False
 
@@ -69,9 +74,6 @@ class Seed(object):
                 self.atoms[k][1]=atoms[i][1]
                 self.atoms[k][2]=atoms[i][2]
                 self.atoms[k][3]=atoms[i][3]
-                self.atoms[k][4]=atoms[i][4]
-                self.atoms[k][5]=atoms[i][5]
-                self.atoms[k][6]=atoms[i][6]
                 k+=1
 
     
@@ -98,6 +100,46 @@ class Seed(object):
 	return loo
 
 
+#class for histogram
+class Histogram(object):
+    
+    def __init__(self,histomin,histomax,histobins):
+        self.histomax = histomax
+        self.histomin = histomin
+        self.histobins = histobins
+        self.histo = np.zeros(histobins)
+        self.histox = np.linspace(self.histomin,self.histomax,self.histobins)
+
+    def addAtomtoHisto(self,atom,addvalue):
+        distance = atom[4]
+	#print distance
+	#print atom[0]
+        value = int(self.histobins*(float(distance) - float(self.histomin))/(float(self.histomax-self.histomin)))
+	#print value
+	if value<len(self.histo):
+        	self.histo[value]+=addvalue
+	else:
+		print "weird value"
+		print value
+		print distance
+    
+    def getBoxX(self,hbox):
+        x = (float(hbox)*float(self.histomax-self.histomin) )/float(self.histobins) + float(self.histomin)
+        return x
+
+
+#function to assign histograms
+def AssignHistograms(atomsclass,histogram,nucsize):
+    counter=0
+    for atom in atomsclass.atoms:
+        counter+=1
+        addvalue = 1.00/float(nucsize)
+        histogram.addAtomtoHisto(atom,addvalue)
+	#print atom[4]
+    #print counter
+    #print nucsize
+    return histogram
+
 
 #function to read dump files
 def read_alles(filename,filetype="dump"):
@@ -107,19 +149,12 @@ def read_alles(filename,filetype="dump"):
         #after that column 0,3,4,5 to be read.
         count = 0
         data = []
-	print "reading atom file"
         for line in open(filename,'r'):
             data.append(line)
 
         boxsizelist = []
         natoms = int(data[3])
-        #atoms values are as follows
-        # 0 : id
-        # 1,2,3 : x,y,z
-        # 4 : whichever distance value
-        # 5,6 : avg q4 and q6 respectively
-        # #total of seven parameters
-        atoms = np.empty([natoms,7])
+        atoms = np.empty([natoms,5])
         i = 0
         for line in data:
             if (count==5) or (count==6) or (count==7):
@@ -134,8 +169,6 @@ def read_alles(filename,filetype="dump"):
                 atoms[i][2] = float(raw[4])
                 atoms[i][3] = float(raw[5])
                 atoms[i][4] = 99999.00
-                atoms[i][5] = 99999.00
-                atoms[i][6] = 99999.00
                 #atoms[i][4] = False
                 i+=1
             count+=1
@@ -154,13 +187,15 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     tmpfile = 'my_tmp'
     snapshots=1
     #set up histograms
-    distance1 = []
-    distance2 = []
-    distance3 = []
-    distance4 = []
-    distance5 = []
-    distance6 = []
-    distance7 = []
+    bcc_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    fcc_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    hcp_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    udf_sur = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+
+    bcc_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    fcc_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    hcp_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
+    udf_see = Histogram(surfacehistomin,surfacehistomax,surfacehistobins)
     
     if manual==False:
         interfacelist = helpers.generate_intflist()
@@ -182,7 +217,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         #we get the list of all paths that needs to be analysed
         for path in open(pathpath,'r'):
             pathlist.append(path)
-	print "finalised paths"
+
         #may the analysis start
         for path in pathlist:
             if snapshots>maxconfs:
@@ -192,10 +227,8 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
             identifier = interface+path
             #we are in the folder now
             #we have to read the actual trajectory
-	    
             actualtraj = os.path.join(workdir,'tis','la',interface,path)
             data = helpers.combine_paths_return(actualtraj,gzip=gzip)
-	    print "read paths"
             #we have the data on standby
             #time to read the output raw data histo file.
             
@@ -217,7 +250,6 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                                 count =0
             else:
                 continue
-	    print "read histolists"
             #loooping over each slice in the trajectory
             for i in range(len(histodataslices)):
 		#print snapshots
@@ -231,28 +263,19 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 		#print nucsize 
                 #check if the guy should be part of histo,  and which histo
                 if (nucsize <= tstcluster+3) and (nucsize >= tstcluster-3):
-			if snapshots>maxconfs:
-				break
-			snapshots+=1
-			print "value found"
+                        #he is part of tst cluster
+                        #write the data down to a tempfile
+                        #write the slice
                         outfile = open(tmpfile,'w')
                         for j in range(len(data[i])):
                                 outfile.write(data[i][j])
                         outfile.flush()
                         outfile.close()
 
-			print "applying op"
-                        #apply order parameter and read histo stuff
-                        cmd = [binary,tmpfile]
-                        proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
-                        out,err = proc.communicate()
-                        proc.wait()
-			print "reading the atoms"
                         #read the slice
-                        #modify read alles to read in the q4 q6 too.- done
                         atoms = read_alles(tmpfile)
                         os.system(('rm %s')% tmpfile) 
-			print "setting up seed"
+
                         #set up the seed classes
                         seed = Seed(seedfileaddress)
                         seed.ReadSeed()
@@ -263,119 +286,118 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                         fccids = [x for x in fccids if x not in seed.seedids]
                         hcpids = [x for x in hcpids if x not in seed.seedids]
                         udfids = [x for x in udfids if x not in seed.seedids]
-                        
+			
                         #set up surface class
                         surface = Seed('dummy')
                         surface.ReadSeed(read=False,idlist=surids)
                         if surface.exists:
                                 surface.PopulateSeed(atoms,read=False)
 
-                        #find udf ids in surface
-                        udfsurids = [x for x in udfids if x in surids]
-                        udfcoreids = [x for x in udfids if x not in surids]
-			
-			print "populating seeds"
+                        #set up BCC class
+                        bcc = Seed('dummy')
+                        bcc.ReadSeed(read=False,idlist=bccids)
+                        if bcc.exists:
+                                bcc.PopulateSeed(atoms,read=False)
+
+                        #set up FCC class
+                        fcc = Seed('dummy')
+                        fcc.ReadSeed(read=False,idlist=fccids)
+                        if fcc.exists:
+                                fcc.PopulateSeed(atoms,read=False)
+
+                        #set up HCP class
+                        hcp = Seed('dummy')
+                        hcp.ReadSeed(read=False,idlist=hcpids)
+                        if hcp.exists:
+                                hcp.PopulateSeed(atoms,read=False)
+
                         #set up UDF class
-                        udfsur = Seed('dummy')
-                        udfsur.ReadSeed(read=False,idlist=udfsurids)
-                        if udfsur.exists:
-                                udfsur.PopulateSeed(atoms,read=False)
-
-
-                        udfcore = Seed('dummy')
-                        udfcore.ReadSeed(read=False,idlist=udfcoreids)
-                        if udfcore.exists:
-                                udfcore.PopulateSeed(atoms,read=False)
-                        print "reading q4q6files"
-			qlist = []
-			for line in open('result1.dat','r'):
-				line = line.strip()
-				raw = line.split()
-				dummy = [int(raw[0]),float(raw[1]),float(raw[2])]
-				qlist.append(dummy)
-			print "trimming q4q6files"
-			qlistcore = [ pos for pos in qlist if pos[0] in udfcoreids ]
+                        udf = Seed('dummy')
+                        udf.ReadSeed(read=False,idlist=udfids)
+                        if udf.exists:
+                                udf.PopulateSeed(atoms,read=False)
 			
-			print "assingning pos values to atoms"
-			for atomito in udfcore.atoms:
-				for pos in qlistcore:
-					if atomito[0]==pos[0]:
-						atomito[5]=pos[1]
-						atomito[6]=pos[2]
-						break
-				
-			
-						
+			#print len(fccids)
+			#print len(nfccids)
+			#print len(fcc.atoms)
+			extdist = []
+			#extdist2 = []
+                        if bcc.exists:
+				#print "BCC"
+                                extdist.append(bcc.CalculateDistances(seed))
+				#print "BCC"
+                                bcc_sur = AssignHistograms(bcc,bcc_sur,nucsize)
+                                #extdist2.append(bcc.CalculateDistances(seed))
+                                bcc_see = AssignHistograms(bcc,bcc_see,1)
+                        if fcc.exists:
+                                #print "FCC"
+				extdist.append(fcc.CalculateDistances(seed))
+				#print "FCC"
+                                fcc_sur = AssignHistograms(fcc,fcc_sur,nucsize)
+                                #extdist2.append(fcc.CalculateDistances(seed))
+                                fcc_see = AssignHistograms(fcc,fcc_see,1)
+                        if hcp.exists:
+                                #print "HCP"
+				extdist.append(hcp.CalculateDistances(seed))
+				#print "HCP"
+                                hcp_sur = AssignHistograms(hcp,hcp_sur,nucsize)
+                                #extdist2.append(hcp.CalculateDistances(seed))
+                                hcp_see = AssignHistograms(hcp,hcp_see,1)
+                        if udf.exists:
+				#print "UDF"
+                                extdist.append(udf.CalculateDistances(seed))
+				#print "UDF"
+                                udf_sur = AssignHistograms(udf,udf_sur,nucsize)
+                                #extdist2.append(udf.CalculateDistances(seed))
+                                udf_see = AssignHistograms(udf,udf_see,1)
+			snapshots+=1
+			if snapshots>maxconfs:
+				break
+    
+    #normalise the histograms
+    #histogram x values
+    histox_sur = np.zeros(len(bcc_sur.histox))
+    histox_see = np.zeros(len(bcc_sur.histox))
 
-			
-			
-					
-			print "calculating distances"
-                        #seeds are populated. Now find distance of each atom to the surface.
-                        udfcore.CalculateDistances(surface)
-			print "making distance lists"
-                        #now add the points to the arrays.
-                        for atomcito in udfcore.atoms:
-                                if atomcito[4]<=1.0:
-                                        distance1.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=2.0:
-                                        distance2.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=3.0:
-                                        distance3.append([atomcito[5],atomcito[6]])                                
-                                elif atomcito[4]<=4.0:
-                                        distance4.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=5.0:
-                                        distance5.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=6.0:
-                                        distance6.append([atomcito[5],atomcito[6]])
-				elif atomcito[4]<=7.0:
-					distance7.append([atomcito[5],atomcito[6]])
-                                else:
-                                        print "jsjsjsj"
-		        print "finished slice"
-			print snapshots
+    for i in range(len(bcc_sur.histox)):
+        #sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
+        sum_see = bcc_see.histo[i]+fcc_see.histo[i]+hcp_see.histo[i]+udf_see.histo[i]
+        #if sum_sur>0:
+	bcc_sur.histo[i]/=float(snapshots)
+        fcc_sur.histo[i]/=float(snapshots)
+        hcp_sur.histo[i]/=float(snapshots)
+        udf_sur.histo[i]/=float(snapshots)
 
-    #write out the files
-    print "writing distance lists"
-    fout = open('distance1.dat','w')
-    for i in range(len(distance1)):
-        fout.write(("%f %f\n")%(distance1[i][0],distance1[i][1]))
-    fout.close()
+	if sum_see>0:
+        	bcc_see.histo[i]/=float(sum_see)
+        	fcc_see.histo[i]/=float(sum_see)
+        	hcp_see.histo[i]/=float(sum_see)
+        	udf_see.histo[i]/=float(sum_see)
+        
+        histox_sur[i] = bcc_sur.getBoxX(i)
+        histox_see[i] = bcc_see.getBoxX(i)
 
-    fout = open('distance2.dat','w')
-    for i in range(len(distance2)):
-        fout.write(("%f %f\n")%(distance2[i][0],distance2[i][1]))
-    fout.close()
-
-    fout = open('distance3.dat','w')
-    for i in range(len(distance3)):
-        fout.write(("%f %f\n")%(distance3[i][0],distance3[i][1]))
-    fout.close()
-
-    fout = open('distance4.dat','w')
-    for i in range(len(distance4)):
-        fout.write(("%f %f\n")%(distance4[i][0],distance4[i][1]))
-    fout.close()
-
-    fout = open('distance5.dat','w')
-    for i in range(len(distance5)):
-        fout.write(("%f %f\n")%(distance5[i][0],distance5[i][1]))
-    fout.close()
-
-    fout = open('distance6.dat','w')
-    for i in range(len(distance6)):
-        fout.write(("%f %f\n")%(distance6[i][0],distance6[i][1]))
-    fout.close()
-
-    fout = open('distance7.dat','w')
-    for i in range(len(distance7)):
-        fout.write(("%f %f\n")%(distance7[i][0],distance7[i][1]))
-    fout.close()
-
-
-    print "finishing up"
+    histo_sur = np.column_stack((histox_sur,bcc_sur.histo,fcc_sur.histo,hcp_sur.histo,udf_sur.histo))
+    histo_see = np.column_stack((histox_see,bcc_see.histo,fcc_see.histo,hcp_see.histo,udf_see.histo))
+    
+    savefile1 = 'averaged_histo_frac_'+str(tstcluster)+'.dat'
+    savefile2 = 'averaged_histo_nos_'+str(tstcluster)+'.dat'
+    np.savetxt(savefile1,histo_sur)
+    np.savetxt(savefile2,histo_see)
+    print snapshots
+    extdist = sum(extdist,[])
+    #extdist2 = sum(extdist2,[])
+    print max(extdist)
+    print min(extdist)
+    #print max(extdist2)
+    #print min(extdist2)
 
 if __name__=='__main__':
+
     MakeStructureHistogram('AB',manual=False,gzip=True)
-                        
-                
+
+
+            
+
+            
+            

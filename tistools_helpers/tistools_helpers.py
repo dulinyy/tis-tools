@@ -166,10 +166,12 @@ class tistools_helpers(object):
         #if gzip==False:
 	trajgz = traj + '.gz'
         if os.path.exists(traj):
+	    print "exits"
             infile = open(traj,'r')
             for line in infile:
                 data.append(line)
         elif os.path.exists(trajgz):
+	    print "zipped exists"
             for line in self.readgzlines(traj):
                 data.append(line)
         else:

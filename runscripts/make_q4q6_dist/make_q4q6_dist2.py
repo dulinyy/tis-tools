@@ -22,7 +22,7 @@ seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
 binary = '/home/users/menonsqr/tis-tools.git/trunk/runscripts/make_q4q6_dist/orderparameter/main'
 tstcluster = 404
 
-maxconfs=100
+maxconfs=30
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -264,6 +264,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                         hcpids = [x for x in hcpids if x not in seed.seedids]
                         udfids = [x for x in udfids if x not in seed.seedids]
                         
+			allids = bccids + fccids + hcpids + udfids 
                         #set up surface class
                         surface = Seed('dummy')
                         surface.ReadSeed(read=False,idlist=surids)
@@ -271,15 +272,15 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                                 surface.PopulateSeed(atoms,read=False)
 
                         #find udf ids in surface
-                        udfsurids = [x for x in udfids if x in surids]
-                        udfcoreids = [x for x in udfids if x not in surids]
+                        #udfsurids = [x for x in udfids if x in surids]
+                        udfcoreids = [x for x in allids if x not in surids]
 			
 			print "populating seeds"
                         #set up UDF class
-                        udfsur = Seed('dummy')
-                        udfsur.ReadSeed(read=False,idlist=udfsurids)
-                        if udfsur.exists:
-                                udfsur.PopulateSeed(atoms,read=False)
+                        #udfsur = Seed('dummy')
+                        #udfsur.ReadSeed(read=False,idlist=udfsurids)
+                        #if udfsur.exists:
+                        #        udfsur.PopulateSeed(atoms,read=False)
 
 
                         udfcore = Seed('dummy')
@@ -316,22 +317,23 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 			print "making distance lists"
                         #now add the points to the arrays.
                         for atomcito in udfcore.atoms:
-                                if atomcito[4]<=1.0:
+                                if atomcito[4]<=2.0:
                                         distance1.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=2.0:
-                                        distance2.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=3.0:
-                                        distance3.append([atomcito[5],atomcito[6]])                                
-                                elif atomcito[4]<=4.0:
-                                        distance4.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=5.0:
-                                        distance5.append([atomcito[5],atomcito[6]])
                                 elif atomcito[4]<=6.0:
-                                        distance6.append([atomcito[5],atomcito[6]])
-				elif atomcito[4]<=7.0:
-					distance7.append([atomcito[5],atomcito[6]])
+                                        distance2.append([atomcito[5],atomcito[6]])
+                                elif atomcito[4]<=9.0:
+                                        distance3.append([atomcito[5],atomcito[6]])                                
+                                #elif atomcito[4]<=4.0:
+                                #        distance4.append([atomcito[5],atomcito[6]])
+                                #elif atomcito[4]<=5.0:
+                                #        distance5.append([atomcito[5],atomcito[6]])
+                                #elif atomcito[4]<=6.0:
+                                #        distance6.append([atomcito[5],atomcito[6]])
+				#elif atomcito[4]<=7.0:
+			      #		distance7.append([atomcito[5],atomcito[6]])
                                 else:
-                                        print "jsjsjsj"
+                                        print "jsj"
+					print atomcito[4]
 		        print "finished slice"
 			print snapshots
 
@@ -352,25 +354,25 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         fout.write(("%f %f\n")%(distance3[i][0],distance3[i][1]))
     fout.close()
 
-    fout = open('distance4.dat','w')
-    for i in range(len(distance4)):
-        fout.write(("%f %f\n")%(distance4[i][0],distance4[i][1]))
-    fout.close()
+#    fout = open('distance4.dat','w')
+#    for i in range(len(distance4)):
+#        fout.write(("%f %f\n")%(distance4[i][0],distance4[i][1]))
+#    fout.close()
 
-    fout = open('distance5.dat','w')
-    for i in range(len(distance5)):
-        fout.write(("%f %f\n")%(distance5[i][0],distance5[i][1]))
-    fout.close()
+#    fout = open('distance5.dat','w')
+#    for i in range(len(distance5)):
+#        fout.write(("%f %f\n")%(distance5[i][0],distance5[i][1]))
+#    fout.close()
 
-    fout = open('distance6.dat','w')
-    for i in range(len(distance6)):
-        fout.write(("%f %f\n")%(distance6[i][0],distance6[i][1]))
-    fout.close()
+#    fout = open('distance6.dat','w')
+#    for i in range(len(distance6)):
+#        fout.write(("%f %f\n")%(distance6[i][0],distance6[i][1]))
+#    fout.close()
 
-    fout = open('distance7.dat','w')
-    for i in range(len(distance7)):
-        fout.write(("%f %f\n")%(distance7[i][0],distance7[i][1]))
-    fout.close()
+#    fout = open('distance7.dat','w')
+#    for i in range(len(distance7)):
+#        fout.write(("%f %f\n")%(distance7[i][0],distance7[i][1]))
+#    fout.close()
 
 
     print "finishing up"

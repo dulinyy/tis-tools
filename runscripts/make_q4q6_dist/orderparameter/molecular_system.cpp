@@ -1635,7 +1635,7 @@ void CMolecularSystem::outputSimpleResults(int number)
 {
   char IntStr[80];
   ofstream of;
-  sprintf( IntStr, "result.dat", number);
+  sprintf( IntStr, "result%d.dat", number);
   of.open (IntStr, ofstream::out | ofstream::trunc);
   if (of.is_open())
   {
