@@ -18,16 +18,16 @@ logger.propagate = False
 
 
 #workdir
-workdir = '/home/users/menonsqr/NS43/tis_run'
-seedfileaddress = '/home/users/menonsqr/SeedFCC43/seed.dat'
-tstcluster = 200
+workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
+seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
+tstcluster = 404
 #seedhistomax = 25.0
 #seedhistomin = 0.0
 #seedhistobins = 200
-surfacehistomax = 10.0
+surfacehistomax = 8.0
 surfacehistomin = 0.0
 surfacehistobins = 100
-maxconfs=1000
+maxconfs=300
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -109,7 +109,7 @@ class Histogram(object):
         self.histobins = histobins
         self.histo = np.zeros(histobins)
         self.histox = np.linspace(self.histomin,self.histomax,self.histobins)
-
+	self.count = np.zeros(histobins)
     def addAtomtoHisto(self,atom,addvalue):
         distance = atom[4]
 	#print distance
@@ -118,6 +118,7 @@ class Histogram(object):
 	#print value
 	if value<len(self.histo):
         	self.histo[value]+=addvalue
+		self.count[value]+=1
 	else:
 		print "weird value"
 		print value
@@ -320,32 +321,32 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 			#print len(fccids)
 			#print len(nfccids)
 			#print len(fcc.atoms)
-			extdist = []
+			#extdist = []
 			#extdist2 = []
                         if bcc.exists:
 				#print "BCC"
-                                extdist.append(bcc.CalculateDistances(surface))
+                                bcc.CalculateDistances(surface)
 				#print "BCC"
                                 bcc_sur = AssignHistograms(bcc,bcc_sur,nucsize)
                                 #extdist2.append(bcc.CalculateDistances(seed))
                                 bcc_see = AssignHistograms(bcc,bcc_see,1)
                         if fcc.exists:
                                 #print "FCC"
-				extdist.append(fcc.CalculateDistances(surface))
+				fcc.CalculateDistances(surface)
 				#print "FCC"
                                 fcc_sur = AssignHistograms(fcc,fcc_sur,nucsize)
                                 #extdist2.append(fcc.CalculateDistances(seed))
                                 fcc_see = AssignHistograms(fcc,fcc_see,1)
                         if hcp.exists:
                                 #print "HCP"
-				extdist.append(hcp.CalculateDistances(surface))
+				hcp.CalculateDistances(surface)
 				#print "HCP"
                                 hcp_sur = AssignHistograms(hcp,hcp_sur,nucsize)
                                 #extdist2.append(hcp.CalculateDistances(seed))
                                 hcp_see = AssignHistograms(hcp,hcp_see,1)
                         if udf.exists:
 				#print "UDF"
-                                extdist.append(udf.CalculateDistances(surface))
+                                udf.CalculateDistances(surface)
 				#print "UDF"
                                 udf_sur = AssignHistograms(udf,udf_sur,nucsize)
                                 #extdist2.append(udf.CalculateDistances(seed))
@@ -358,6 +359,11 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     #histogram x values
     histox_sur = np.zeros(len(bcc_sur.histox))
     histox_see = np.zeros(len(bcc_sur.histox))
+    #bccsum = np.sum(bcc_sur.count)
+    #fccsum = np.sum(fcc_sur.count)
+    #hcpsum = np.sum(hcp_sur.count)
+    #udfsum = np.sum(udf_sur.count)
+    #tot_atoms = bccsum + fccsum + hcpsum + udfsum
 
     for i in range(len(bcc_sur.histox)):
         #sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
@@ -367,6 +373,23 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         fcc_sur.histo[i]/=float(snapshots)
         hcp_sur.histo[i]/=float(snapshots)
         udf_sur.histo[i]/=float(snapshots)
+	#atoms in the bin
+        #bin_atoms = bcc_sur.count[i] + fcc_sur.count[i] + hcp_sur.count[i] + udf_sur.count[i]
+        #atomfactor = bin_atoms/tot_atoms
+	#sum_sur = bcc_sur.histo[i] + fcc_sur.histo[i] + hcp_sur.histo[i] + udf_sur.histo[i]
+	
+	#if sum_sur>0:
+
+        #	bcc_sur.histo[i]/=sum_sur
+        #	fcc_sur.histo[i]/=sum_sur
+        #	hcp_sur.histo[i]/=sum_sur
+        #	udf_sur.histo[i]/=sum_sur
+        #now rescale it back
+	#bcc_sur.histo[i]*=atomfactor
+        #fcc_sur.histo[i]*=atomfactor
+        #hcp_sur.histo[i]*=atomfactor
+        #udf_sur.histo[i]*=atomfactor
+
 
 	if sum_see>0:
         	bcc_see.histo[i]/=float(sum_see)
@@ -385,10 +408,10 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     np.savetxt(savefile1,histo_sur)
     np.savetxt(savefile2,histo_see)
     print snapshots
-    extdist = sum(extdist,[])
+    #extdist = sum(extdist,[])
     #extdist2 = sum(extdist2,[])
-    print max(extdist)
-    print min(extdist)
+    #print max(extdist)
+    #print min(extdist)
     #print max(extdist2)
     #print min(extdist2)
 

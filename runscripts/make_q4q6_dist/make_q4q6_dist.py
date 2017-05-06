@@ -17,12 +17,12 @@ logger.propagate = False
 
 
 #workdir
-workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
-seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
+workdir = '/home/users/menonsqr/storage/HCP19/tis_run'
+seedfileaddress = '/home/users/menonsqr/SeedHCP19/seed.dat'
 binary = '/home/users/menonsqr/tis-tools.git/trunk/runscripts/make_q4q6_dist/orderparameter/main'
-tstcluster = 404
+tstcluster = 413
 
-maxconfs=100
+maxconfs=10
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -161,7 +161,8 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     distance5 = []
     distance6 = []
     distance7 = []
-    
+    alle = []   
+ 
     if manual==False:
         interfacelist = helpers.generate_intflist()
     else:
@@ -235,6 +236,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 				break
 			snapshots+=1
 			print "value found"
+			tmpfile = os.path.join(os.getcwd(),identifier+'.temp')
                         outfile = open(tmpfile,'w')
                         for j in range(len(data[i])):
                                 outfile.write(data[i][j])
@@ -271,9 +273,11 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                                 surface.PopulateSeed(atoms,read=False)
 
                         #find udf ids in surface
-                        udfsurids = [x for x in udfids if x in surids]
-                        udfcoreids = [x for x in udfids if x not in surids]
-			
+                        #udfsurids = [x for x in udfids if x in surids]
+			udfsurids = [x for x in hcpids if x in surids]
+                        #udfcoreids = [x for x in udfids if x not in surids]
+			udfcoreids = [x for x in hcpids if x not in surids]			
+
 			print "populating seeds"
                         #set up UDF class
                         udfsur = Seed('dummy')
@@ -332,6 +336,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 					distance7.append([atomcito[5],atomcito[6]])
                                 else:
                                         print "jsjsjsj"
+				alle.append([atomcito[5],atomcito[6]])
 		        print "finished slice"
 			print snapshots
 
@@ -371,6 +376,12 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     for i in range(len(distance7)):
         fout.write(("%f %f\n")%(distance7[i][0],distance7[i][1]))
     fout.close()
+
+    fout = open('alle.dat','w')
+    for i in range(len(alle)):
+        fout.write(("%f %f\n")%(alle[i][0],alle[i][1]))
+    fout.close()
+
 
 
     print "finishing up"

@@ -105,7 +105,10 @@ def MakeStructureHistogram(pathtype,manual=False):
             #loooping over each slice in the trajectory
             
             for i in range(len(nucsize)):
-                seedinsurfaceaddvalue = float(seedinsurface[i])/float(seedincluster[i])
+		if seedincluster[i]>0:
+                	seedinsurfaceaddvalue = float(seedinsurface[i])/float(seedincluster[i])
+		else:
+			seedinsurfaceaddvalue = 0
                 value = seed_nuc.addAtomtoHisto(nucsize[i],seedincluster[i])
                 value = seed_sur.addAtomtoHisto(nucsize[i],seedinsurfaceaddvalue)
                 value = seed_dist.addAtomtoHisto(nucsize[i],mindist[i])

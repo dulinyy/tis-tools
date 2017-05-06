@@ -18,19 +18,19 @@ logger.propagate = False
 
 
 #workdir
-workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
-seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
-tstcluster = 404
+workdir = '/home/users/menonsqr/storage/HCP19/tis_run'
+seedfileaddress = '/home/users/menonsqr/SeedHCP19/seed.dat'
+tstcluster = 700
 #seedhistomax = 25.0
 #seedhistomin = 0.0
 #seedhistobins = 200
 surfacehistomax = 30.0
 surfacehistomin = 0.0
-surfacehistobins = 300
+surfacehistobins = 150
 maxconfs=100
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
-
+acount = np.zeros(surfacehistobins)
 
 #class for seed
 class Seed(object):
@@ -109,6 +109,7 @@ class Histogram(object):
         self.histobins = histobins
         self.histo = np.zeros(histobins)
         self.histox = np.linspace(self.histomin,self.histomax,self.histobins)
+	self.count = np.zeros(histobins)
 
     def addAtomtoHisto(self,atom,addvalue):
         distance = atom[4]
@@ -118,10 +119,12 @@ class Histogram(object):
 	#print value
 	if value<len(self.histo):
         	self.histo[value]+=addvalue
+		self.count[value]+=1
 	else:
 		print "weird value"
 		print value
 		print distance
+	
     
     def getBoxX(self,hbox):
         x = (float(hbox)*float(self.histomax-self.histomin) )/float(self.histobins) + float(self.histomin)
@@ -134,6 +137,8 @@ def AssignHistograms(atomsclass,histogram,nucsize):
     for atom in atomsclass.atoms:
         counter+=1
         addvalue = 1.00/float(nucsize)
+	#print nucsize
+	#print addvalue
         histogram.addAtomtoHisto(atom,addvalue)
 	#print atom[4]
     #print counter
@@ -359,14 +364,49 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     histox_sur = np.zeros(len(bcc_sur.histox))
     histox_see = np.zeros(len(bcc_sur.histox))
 
+    bcc_sum = np.sum(bcc_sur.count)
+    fcc_sum = np.sum(fcc_sur.count)
+    hcp_sum = np.sum(hcp_sur.count)
+    udf_sum = np.sum(udf_sur.count)   
+    
+    fout = open('statistics.dat','w')
+    tot_atoms = bcc_sum + fcc_sum + hcp_sum + udf_sum
+    fout.write(("%d\n")%tot_atoms)
+
     for i in range(len(bcc_sur.histox)):
         #sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
         sum_see = bcc_see.histo[i]+fcc_see.histo[i]+hcp_see.histo[i]+udf_see.histo[i]
-        #if sum_sur>0:
+	bin_atoms = bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i]
+	
+
+	atomfactor = float(bin_atoms)/float(tot_atoms)
+
+	
+	sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
+ 	
+	#now reweigh according to this
+	#if sum_sur>0:
+	#	bcc_sur.histo[i]/=sum_sur
+	#	fcc_sur.histo[i]/=sum_sur
+	#	hcp_sur.histo[i]/=sum_sur
+	#	udf_sur.histo[i]/=sum_sur
+	#now scale it back to atomfactor
+	#bcc_sur.histo[i]*=atomfactor
+        #fcc_sur.histo[i]*=atomfactor
+        #hcp_sur.histo[i]*=atomfactor
+        #udf_sur.histo[i]*=atomfactor
+	
+	fout.write(("%d %f\n")%(bin_atoms,atomfactor))
 	bcc_sur.histo[i]/=float(snapshots)
         fcc_sur.histo[i]/=float(snapshots)
         hcp_sur.histo[i]/=float(snapshots)
         udf_sur.histo[i]/=float(snapshots)
+        #if (bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])>0:
+	#	bcc_sur.histo[i]/=float(bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])
+        #	fcc_sur.histo[i]/=float(bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])
+        #	hcp_sur.histo[i]/=float(bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])
+        #	udf_sur.histo[i]/=float(bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])
+	
 
 	if sum_see>0:
         	bcc_see.histo[i]/=float(sum_see)
@@ -379,7 +419,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
     histo_sur = np.column_stack((histox_sur,bcc_sur.histo,fcc_sur.histo,hcp_sur.histo,udf_sur.histo))
     histo_see = np.column_stack((histox_see,bcc_see.histo,fcc_see.histo,hcp_see.histo,udf_see.histo))
-    
+    fout.close()
     savefile1 = 'averaged_histo_frac_'+str(tstcluster)+'.dat'
     savefile2 = 'averaged_histo_nos_'+str(tstcluster)+'.dat'
     np.savetxt(savefile1,histo_sur)

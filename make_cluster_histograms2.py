@@ -18,14 +18,14 @@ logger.propagate = False
 
 
 
-histomax = 19.0
+histomax = 44.0
 histomin = 0.0
-histobins = 19
+histobins = 20
 dhistomax = 20.0
 dhistomin = 0.0
-dhistobins = 40
-maxconfs=10
-tstcluster = 404
+dhistobins = 100
+maxconfs=1000
+tstcluster = 180
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -114,18 +114,17 @@ def MakeStructureHistogram(pathtype,manual=False):
             #loooping over each slice in the trajectory
             for i in range(len(nucsize)):
                 if (nucsize[i] <= tstcluster+3) and (nucsize[i] >= tstcluster-3):
-                        if total>maxconfs:
-                                break
-                        value = seed_nuc.addAtomtoHisto(seedincluster[i],1)
-                        if value<len(count):
-                                count[value]+=1
-                        value = seed_dist.addAtomtoHisto(mindist[i],1)
-                        if value<len(dcount):
-                                dcount[value]+=1
-                        total+=1
-
-
-    
+			if seedincluster[i]>0:
+				print total
+                        	if total>maxconfs:
+                                	break
+                        	value = seed_nuc.addAtomtoHisto(seedincluster[i],1)
+                        	if value<len(count):
+                                	count[value]+=1
+                        	value = seed_dist.addAtomtoHisto(mindist[i],1)
+                        	if value<len(dcount):
+                                	dcount[value]+=1
+                        	total+=1
     #normalise the histograms
     #histogram x values
     histox = np.zeros(len(seed_nuc.histox))
@@ -133,15 +132,15 @@ def MakeStructureHistogram(pathtype,manual=False):
 
     for i in range(len(seed_nuc.histox)):
         
-        if count[i]>0:
-		seed_nuc.histo[i]/=float(count[i])
+        
+	seed_nuc.histo[i]/=float(total)
         
         histox[i] = seed_nuc.getBoxX(i)
 
     for i in range(len(seed_dist.histox)):
         
-        if dcount[i]>0:
-                seed_dist.histo[i]/=float(dcount[i])
+        
+        seed_dist.histo[i]/=float(total)
 
         
         dhistox[i] = seed_dist.getBoxX(i)
@@ -149,8 +148,8 @@ def MakeStructureHistogram(pathtype,manual=False):
     histo_nuc = np.column_stack((histox,seed_nuc.histo))
     histo_dist = np.column_stack((dhistox,seed_dist.histo))
   
-    np.savetxt('averaged_cluster_nuc.dat',histo_nuc)
-    np.savetxt('averaged_cluster_dist.dat',histo_dist)
+    np.savetxt((('averaged_cluster_nuc_%d.dat')%tstcluster),histo_nuc)
+    np.savetxt((('averaged_cluster_dist_%d.dat')%tstcluster),histo_dist)
   
  
 if __name__=='__main__':

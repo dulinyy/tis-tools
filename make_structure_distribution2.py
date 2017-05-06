@@ -17,7 +17,7 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = False 
 
 #seedfile
-seedfileaddress = '/home/users/menonsqr/SeedFCC43/seed.dat'
+seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
 
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
@@ -98,7 +98,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                 surids = map(int,histodataslices[i][11].split())
 
                 nucsize = len(bccids)+len(fccids)+len(hcpids)+len(udfids)
- 
+		#print nucsize 
                 #delete the seed particles from the lists
                 bccids = [x for x in bccids if x not in seedids]
                 fccids = [x for x in fccids if x not in seedids]
@@ -107,7 +107,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
                 #calculate the fractions now
                 clustersize =  len(bccids)+len(fccids)+len(hcpids)+len(udfids)
-
+		#print clustersize
                 if clustersize>0:
                         fnbcc = float(len(bccids))/float(clustersize)
                         fnfcc = float(len(fccids))/float(clustersize)
@@ -135,8 +135,9 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         
                 #calculate the fractions now
                 coresize =  len(cbccids)+len(cfccids)+len(chcpids)+len(cudfids)
-
-                if coresize>0:
+		print coresize
+		print cudfids
+                if coresize>0:	
                         fcbcc = float(len(cbccids))/float(coresize)
                         fcfcc = float(len(cfccids))/float(coresize)
                         fchcp = float(len(chcpids))/float(coresize)
@@ -158,7 +159,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
                 #calculate the fractions now
                 surfacesize =  len(sbccids)+len(sfccids)+len(shcpids)+len(sudfids)
-
+		#print surfacesize
                 if surfacesize>0:
                         fsbcc = float(len(sbccids))/float(surfacesize)
                         fsfcc = float(len(sfccids))/float(surfacesize)

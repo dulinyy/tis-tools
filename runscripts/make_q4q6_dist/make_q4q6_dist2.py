@@ -20,9 +20,9 @@ logger.propagate = False
 workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
 seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
 binary = '/home/users/menonsqr/tis-tools.git/trunk/runscripts/make_q4q6_dist/orderparameter/main'
-tstcluster = 404
+tstcluster = 100
 
-maxconfs=30
+maxconfs=50
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -151,7 +151,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     special function to make histograms
     hardcoded. Remove at some point.
     """
-    tmpfile = 'my_tmp'
+    tmpfile = os.path.join(os.getcwd(),'temp.dat')
     snapshots=1
     #set up histograms
     distance1 = []
@@ -161,6 +161,13 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     distance5 = []
     distance6 = []
     distance7 = []
+    distance8 = []
+    distance9 = []
+    distance10 = []
+    distance11 = []
+    distance12 = []
+    distance13 = []
+    distance14 = []
     
     if manual==False:
         interfacelist = helpers.generate_intflist()
@@ -313,27 +320,27 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 					
 			print "calculating distances"
                         #seeds are populated. Now find distance of each atom to the surface.
-                        udfcore.CalculateDistances(surface)
+                        udfcore.CalculateDistances(seed)
 			print "making distance lists"
                         #now add the points to the arrays.
                         for atomcito in udfcore.atoms:
-                                if atomcito[4]<=2.0:
+                                if atomcito[4]<1.5:
                                         distance1.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=6.0:
+                                elif atomcito[4]<3.0:
                                         distance2.append([atomcito[5],atomcito[6]])
-                                elif atomcito[4]<=9.0:
+                                elif atomcito[4]<5.0:
                                         distance3.append([atomcito[5],atomcito[6]])                                
-                                #elif atomcito[4]<=4.0:
-                                #        distance4.append([atomcito[5],atomcito[6]])
-                                #elif atomcito[4]<=5.0:
-                                #        distance5.append([atomcito[5],atomcito[6]])
-                                #elif atomcito[4]<=6.0:
-                                #        distance6.append([atomcito[5],atomcito[6]])
-				#elif atomcito[4]<=7.0:
-			      #		distance7.append([atomcito[5],atomcito[6]])
-                                else:
-                                        print "jsj"
-					print atomcito[4]
+                                elif atomcito[4]<6.5:
+                                        distance4.append([atomcito[5],atomcito[6]])
+                                elif atomcito[4]<8.0:
+                                        distance5.append([atomcito[5],atomcito[6]])
+                                elif atomcito[4]<10.0:
+                                        distance6.append([atomcito[5],atomcito[6]])
+				elif atomcito[4]<12.0:
+			      		distance7.append([atomcito[5],atomcito[6]])
+                                #else:
+                                #        print "jsj"
+				#	print atomcito[4]
 		        print "finished slice"
 			print snapshots
 
@@ -354,25 +361,25 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         fout.write(("%f %f\n")%(distance3[i][0],distance3[i][1]))
     fout.close()
 
-#    fout = open('distance4.dat','w')
-#    for i in range(len(distance4)):
-#        fout.write(("%f %f\n")%(distance4[i][0],distance4[i][1]))
-#    fout.close()
+    fout = open('distance4.dat','w')
+    for i in range(len(distance4)):
+        fout.write(("%f %f\n")%(distance4[i][0],distance4[i][1]))
+    fout.close()
 
-#    fout = open('distance5.dat','w')
-#    for i in range(len(distance5)):
-#        fout.write(("%f %f\n")%(distance5[i][0],distance5[i][1]))
-#    fout.close()
+    fout = open('distance5.dat','w')
+    for i in range(len(distance5)):
+        fout.write(("%f %f\n")%(distance5[i][0],distance5[i][1]))
+    fout.close()
 
-#    fout = open('distance6.dat','w')
-#    for i in range(len(distance6)):
-#        fout.write(("%f %f\n")%(distance6[i][0],distance6[i][1]))
-#    fout.close()
+    fout = open('distance6.dat','w')
+    for i in range(len(distance6)):
+        fout.write(("%f %f\n")%(distance6[i][0],distance6[i][1]))
+    fout.close()
 
-#    fout = open('distance7.dat','w')
-#    for i in range(len(distance7)):
-#        fout.write(("%f %f\n")%(distance7[i][0],distance7[i][1]))
-#    fout.close()
+    fout = open('distance7.dat','w')
+    for i in range(len(distance7)):
+        fout.write(("%f %f\n")%(distance7[i][0],distance7[i][1]))
+    fout.close()
 
 
     print "finishing up"
