@@ -16,7 +16,7 @@ import tistools as tt
 
 
 #function to zip the paths
-tt.zip_paths(0,200)
+#tt.zip_paths(0,200)
 
 #apply a binary on paths and calculate results
 #on local machine
