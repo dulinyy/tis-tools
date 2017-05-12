@@ -1630,9 +1630,10 @@ int liquidcount,neighbor;
 
     if (this->molecules[ti].belongsto == greatestbelongsto)
     {
+	liquidcount = 0;
         for (int c = 0;c<this->molecules[ti].n_neighbors;c++)
         {     
-              liquidcount = 0;
+              
               neighbor =  this->molecules[ti].neighbors[c];
 
               if (this->molecules[neighbor].belongsto != greatestbelongsto)
