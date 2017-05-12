@@ -216,7 +216,7 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
 
                 os.chdir(currentpath)
 
-def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial',extension='.opd.dat'):
+def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial',extension='.opd.dat',folder='FCC19'):
     """
     Run an binary on the selected type of paths and gather the output into text files.
     Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
@@ -233,8 +233,8 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
     """
 
     #hardcoded part
-    workdir = '/home/users/menonsqr/temp' 
-    
+    workdir = folder 
+    pathrun=0
     if not os.path.exists(workdir):
 	os.mkdir(workdir)
 
@@ -310,16 +310,18 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
                 logger.info(('deploying job in %s')%pathpath)
                 
                 
-                runstatus=False
-                while(runstatus==False):
-                    no_jobs = helpers.monitor_jobs()
-                    if no_jobs < jobs:
-                        helpers.run_job(scriptname)
-                        runstatus=True
-                    else:
-                        time.sleep(60)
+                #runstatus=False
+                #while(runstatus==False):
+                #    no_jobs = helpers.monitor_jobs()
+                #    if no_jobs < jobs:
+                helpers.run_job(scriptname)
+                #        runstatus=True
+                #    else:
+                #        time.sleep(60)
                 logger.info('job deployed')
-
+		pathrun+=1
+		if pathrun>=300:
+			raise SystemExit()
                 os.chdir(currentpath)
             
 
@@ -400,7 +402,7 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
                 #generate a random identifier
                 indentifier = interface+path
                 #generate a tempname
-                filedummy = indentifier+'.opd.surface'
+                filedummy = indentifier+'.opd.core'
                 #a dummy file
                 filename = os.path.join(pathpath,filedummy)
 

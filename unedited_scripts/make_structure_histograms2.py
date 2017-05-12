@@ -18,8 +18,8 @@ logger.propagate = False
 
 
 #workdir
-workdir = '/home/users/menonsqr/storage/HCP19/tis_run'
-seedfileaddress = '/home/users/menonsqr/SeedHCP19/seed.dat'
+workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
+seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
 tstcluster = 700
 #seedhistomax = 25.0
 #seedhistomin = 0.0
@@ -27,7 +27,7 @@ tstcluster = 700
 surfacehistomax = 30.0
 surfacehistomin = 0.0
 surfacehistobins = 150
-maxconfs=100
+maxconfs=50
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 acount = np.zeros(surfacehistobins)
@@ -237,7 +237,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
             #we have the data on standby
             #time to read the output raw data histo file.
             
-            histofile = os.path.join(pathpath,(identifier+'.histo.list'))
+            histofile = os.path.join(pathpath,(identifier+'histo.list'))
             histodataslices = []
             histodata = []
             count=0
@@ -268,7 +268,8 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 		#print nucsize 
                 #check if the guy should be part of histo,  and which histo
                 if (nucsize <= tstcluster+3) and (nucsize >= tstcluster-3):
-                        #he is part of tst cluster
+                        print "in"
+			#he is part of tst cluster
                         #write the data down to a tempfile
                         #write the slice
                         outfile = open(tmpfile,'w')
@@ -356,6 +357,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                                 #extdist2.append(udf.CalculateDistances(seed))
                                 udf_see = AssignHistograms(udf,udf_see,1)
 			snapshots+=1
+			print snapshots
 			if snapshots>maxconfs:
 				break
     
@@ -385,22 +387,22 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 	sum_sur = bcc_sur.histo[i]+fcc_sur.histo[i]+hcp_sur.histo[i]+udf_sur.histo[i]
  	
 	#now reweigh according to this
-	#if sum_sur>0:
-	#	bcc_sur.histo[i]/=sum_sur
-	#	fcc_sur.histo[i]/=sum_sur
-	#	hcp_sur.histo[i]/=sum_sur
-	#	udf_sur.histo[i]/=sum_sur
+	if sum_sur>0:
+		bcc_sur.histo[i]/=sum_sur
+		fcc_sur.histo[i]/=sum_sur
+		hcp_sur.histo[i]/=sum_sur
+		udf_sur.histo[i]/=sum_sur
 	#now scale it back to atomfactor
-	#bcc_sur.histo[i]*=atomfactor
-        #fcc_sur.histo[i]*=atomfactor
-        #hcp_sur.histo[i]*=atomfactor
-        #udf_sur.histo[i]*=atomfactor
+	bcc_sur.histo[i]*=atomfactor
+        fcc_sur.histo[i]*=atomfactor
+        hcp_sur.histo[i]*=atomfactor
+        udf_sur.histo[i]*=atomfactor
 	
 	fout.write(("%d %f\n")%(bin_atoms,atomfactor))
-	bcc_sur.histo[i]/=float(snapshots)
-        fcc_sur.histo[i]/=float(snapshots)
-        hcp_sur.histo[i]/=float(snapshots)
-        udf_sur.histo[i]/=float(snapshots)
+	#bcc_sur.histo[i]/=float(snapshots)
+        #fcc_sur.histo[i]/=float(snapshots)
+        #hcp_sur.histo[i]/=float(snapshots)
+        #udf_sur.histo[i]/=float(snapshots)
         #if (bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])>0:
 	#	bcc_sur.histo[i]/=float(bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])
         #	fcc_sur.histo[i]/=float(bcc_sur.count[i]+fcc_sur.count[i]+hcp_sur.count[i]+udf_sur.count[i])
@@ -424,17 +426,17 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     savefile2 = 'averaged_histo_nos_'+str(tstcluster)+'.dat'
     np.savetxt(savefile1,histo_sur)
     np.savetxt(savefile2,histo_see)
-    print snapshots
-    extdist = sum(extdist,[])
+    #print snapshots
+    #extdist = sum(extdist,[])
     #extdist2 = sum(extdist2,[])
-    print max(extdist)
-    print min(extdist)
+    #print max(extdist)
+    #print min(extdist)
     #print max(extdist2)
     #print min(extdist2)
 
 if __name__=='__main__':
 
-    MakeStructureHistogram('AB',manual=False,gzip=True)
+    MakeStructureHistogram('AB',manual=True,gzip=True)
 
 
             

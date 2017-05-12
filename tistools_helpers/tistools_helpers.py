@@ -262,7 +262,9 @@ class tistools_helpers(object):
         proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
         out,err = proc.communicate(input="")
         proc.wait()
-
+	print out
+	if out=='':
+		out=0
         return int(out)
                 
     #test binary

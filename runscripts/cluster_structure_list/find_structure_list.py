@@ -159,7 +159,7 @@ if __name__=="__main__":
 	binary = sys.argv[1]
 	gzip = sys.argv[5]	
 	
-	deletefiles=False
+	deletefiles=True
 	
 
 	if gzip=='True':

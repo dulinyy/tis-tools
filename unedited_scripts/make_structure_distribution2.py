@@ -17,8 +17,8 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = False 
 
 #seedfile
-seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
-
+seedfileaddress = '/home/users/menonsqr/SeedFCC27/seed.dat'
+orgfiles = '/home/users/menonsqr/storage/NS27/tis_run'
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -46,29 +46,34 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
         interface = interface.strip()
         intfpath = os.path.join(os.getcwd(),"tis","la",interface)
+	orgintfpath = os.path.join(orgfiles,"tis","la",interface)
         intfpath = intfpath.strip()
+	orgintfpath = orgintfpath.strip()
         pathpath = os.path.join(intfpath,pathtype+".dat")
+	orgpathpath = os.path.join(orgintfpath,pathtype+".dat")
         pathpath = pathpath.strip()
+	orgpathpath = orgpathpath.strip()
         pathlist = []
         filenamelist = []
 
         #we get the list of all paths that needs to be analysed
-        for path in open(pathpath,'r'):
+        for path in open(orgpathpath,'r'):
             pathlist.append(path)
 
         #may the analysis start
         for path in pathlist:
+	    nopath=False
             path = path.strip()
             pathpath= os.path.join(intfpath,path)
             identifier = interface+path
             #we are in the folder now
-	    nwritefile = os.path.join(pathpath,(identifier+'.opd.normal'))
-            cwritefile = os.path.join(pathpath,(identifier+'.opd.core'))
-	    swritefile = os.path.join(pathpath,(identifier+'.opd.surface'))
-            histofile = os.path.join(pathpath,(identifier+'.histo.list'))
-	    nfout = open(nwritefile,'w')
-	    cfout = open(cwritefile,'w')
-	    sfout = open(swritefile,'w')	
+#	    nwritefile = os.path.join(pathpath,(identifier+'.opd.normal'))
+#            cwritefile = os.path.join(pathpath,(identifier+'.opd.core'))
+#	    swritefile = os.path.join(pathpath,(identifier+'.opd.surface'))
+            histofile = os.path.join(pathpath,(identifier+'histo.list'))
+#	    nfout = open(nwritefile,'w')
+#	    cfout = open(cwritefile,'w')
+#	    sfout = open(swritefile,'w')	
 
 
             histodataslices = []
@@ -87,7 +92,17 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                                 histodata = []
                                 count =0
             else:
+		nopath=True
                 continue
+
+            nwritefile = os.path.join(pathpath,(identifier+'.opd.normal'))
+            cwritefile = os.path.join(pathpath,(identifier+'.opd.core'))
+            swritefile = os.path.join(pathpath,(identifier+'.opd.surface'))
+#            histofile = os.path.join(pathpath,(identifier+'.histo.list'))
+            nfout = open(nwritefile,'w')
+            cfout = open(cwritefile,'w')
+            sfout = open(swritefile,'w')
+
             #loooping over each slice in the trajectory
             for i in range(len(histodataslices)):
 		#print snapshots
@@ -135,8 +150,8 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
         
                 #calculate the fractions now
                 coresize =  len(cbccids)+len(cfccids)+len(chcpids)+len(cudfids)
-		print coresize
-		print cudfids
+		#print coresize
+		#print cudfids
                 if coresize>0:	
                         fcbcc = float(len(cbccids))/float(coresize)
                         fcfcc = float(len(cfccids))/float(coresize)
@@ -183,7 +198,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
 if __name__=='__main__':
 
-    MakeStructureHistogram('AB',manual=False,gzip=True)
+    MakeStructureHistogram('AB',manual=True,gzip=True)
 
 
             

@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = False 
 
 #seedfile
-workdir = '/home/users/menonsqr/storage/HCP19/tis_run'
+workdir = '/home/users/menonsqr/storage/20UC_TIS/tis_run'
 seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
 
 
@@ -30,8 +30,8 @@ def VisualiseTrajectory(interface,pathno):
 	pathpath= os.path.join(intfpath,pathno)
 	identifier = interface+pathno
 	histofile = os.path.join(pathpath,(identifier+'.histo.list'))
-        actualtraj = os.path.join(workdir,'tis','la',interface,path)
-        data = helpers.combine_paths_return(actualtraj,gzip=gzip)
+        actualtraj = os.path.join(workdir,'tis','la',interface,pathno)
+        data = helpers.combine_paths_return(actualtraj,gzip=True)
 
         histodataslices = []
         histodata = []
@@ -48,8 +48,8 @@ def VisualiseTrajectory(interface,pathno):
                                 histodataslices.append(histodata)
                                 histodata = []
                                 count =0
-            else:
-                continue
+        		else:
+				continue
 
         for i in range(len(histodataslices)):
 		#print snapshots
@@ -67,12 +67,14 @@ def VisualiseTrajectory(interface,pathno):
                 coreids = [x for x in clusterids if x not in surids ]
 
                 itervar = 0
-                for line in data[i]:
+                for l in range(len(data[i])):
 			if (itervar==8):
-				line = line + " structure cluster seed core\n"
+				data[i][l] = data[i][l].strip()
+				data[i][l] = data[i][l] + " structure cluster seed core\n"
 
 			elif (itervar>8):
-				sline = line.split()
+				data[i][l] = data[i][l].strip()
+				sline = data[i][l].split()
 				ident = int(sline[0])
 				
 				if ident in bccids:
@@ -101,21 +103,22 @@ def VisualiseTrajectory(interface,pathno):
 					seed = " 0"
 
 				if ident in coreids:
-					core = " 1"
+					core = " 1\n"
 				else:
-					core = " 0"
+					core = " 0\n"
 
-				line = line + structure +cluster+seed+core
+				data[i][l] = data[i][l] + structure +cluster+seed+core
 			itervar+=1
 
 	#write out the file
 	outfile = os.path.join(pathpath,'traj.mod.dat')
 	fout = open(outfile,'w')
 	for datacito in data:
-		fout.write(datacito)
+		for line in datacito:
+			fout.write(line)
 	fout.close()
 
 if __name__=="__main__":
-	interface = 'f13'
-	pathno = ''
+	interface = 'f12'
+	pathno = '0000150'
 	VisualiseTrajectory(interface,pathno)
