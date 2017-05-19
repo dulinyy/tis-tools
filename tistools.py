@@ -324,14 +324,13 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
 			raise SystemExit()
                 os.chdir(currentpath)
             
-
-            
+"""
 def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobins=0):
-    """
+
     Combine the outut of the previous function from different files into an averaged data
 
     This is hard coded.
-    """
+    
     #read stable states
     sstateA,sstateB = helpers.read_op()
     
@@ -408,7 +407,7 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
 
                 #next hardcoded part
                 if os.path.isfile(filename) and os.path.getsize(filename) > 0:
-		#if os.path.exists(filename):
+                #if os.path.exists(filename):
                         op,bcc,fcc,hcp,udf = np.loadtxt(filename,unpack=True)
                 else:
                         continue
@@ -468,11 +467,11 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
                 #generate a tempname
                 filedummy = indentifier+'.histo.dat'
                 filename = os.path.join(pathpath,filedummy)
-		if os.path.exists(filename):
+                if os.path.exists(filename):
 
-                	dist,surbcc,surfcc,surhcp,surudf,seebcc,seefcc,seehcp,seeudf = np.loadtxt(filename,unpack=True) 
+                        dist,surbcc,surfcc,surhcp,surudf,seebcc,seefcc,seehcp,seeudf = np.loadtxt(filename,unpack=True) 
                 else:
-			continue
+                        continue
                 surface_bcc+=surbcc
                 surface_fcc+=surfcc
                 surface_hcp+=surhcp
@@ -523,6 +522,93 @@ def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobi
 
         X = np.column_stack((histox,surface_bcc,surface_fcc,surface_hcp,surface_udf,seed_bcc,seed_fcc,seed_hcp,seed_udf))
         np.savetxt("averaged_structure_histo.dat",X)
+
+
+"""
+
+def combine_averages(pathtype,columns=4,extension='.opd.dat',manual=False):
+    """
+    Combine the outut of the previous function from different files into an averaged data
+
+    This is hard coded.
+    """
+    #read stable states
+    sstateA,sstateB = helpers.read_op()
+    
+    #read interfaces
+    if manual==False:
+        interfacelist = helpers.generate_intflist()
+    else:
+        interfacelist = helpers.read_intflist()
+    
+    oparray = np.array(range(int(sstateA),int(sstateB+1)))
+
+    count = np.zeros(len(oparray))
+    read_cols = [np.zeros(len(oparray)) for x in range(columns)]
+    
+    for interface in interfacelist:
+        interface = interface.strip()
+        intfpath = os.path.join(os.getcwd(),"tis","la",interface)
+        intfpath = intfpath.strip()
+        pathpath = os.path.join(intfpath,pathtype+".dat")
+        pathpath = pathpath.strip()
+        pathlist = []
+        filenamelist = []
+
+        #we get the list of all paths that needs to be analysed
+        for path in open(pathpath,'r'):
+            pathlist.append(path)
+
+        #setup the tables and columns
+        ##this part is hardcoded now.
+        #has to be set up individually everytime
+        #module for structure dstributions
+        #may the analysis start
+        for path in pathlist:
+                path = path.strip()
+                #points to specific path folder
+                pathpath = os.path.join(intfpath,path)
+                #generate a random identifier
+                indentifier = interface+path
+                #generate a tempname
+                filedummy = indentifier+extension
+                #a dummy file
+                filename = os.path.join(pathpath,filedummy)
+
+                #next hardcoded part
+                if os.path.isfile(filename) and os.path.getsize(filename) > 0:
+		#if os.path.exists(filename):
+                        ops = np.loadtxt(filename,unpack=True)
+                else:
+                        continue
+                
+                #assuming first one is order parameter
+                #ops[0] = ops[0].astype(int)
+                
+                #print fcc
+                for i in range(len(ops[0])):
+                    for j in range(len(oparray)):
+                            if ops[0][i]==oparray[j]:
+                                    for k in range(len(read_cols)):
+                                        read_cols[k][j]+=ops[k+1][i]
+                                    count[j]+=1
+
+    #implement different methods here
+
+    for i in range(len(oparray)):
+        if count[i]!=0:
+                for k in range(len(read_cols)):
+                        read_cols[k][i]/=float(count[i])   
+        
+    #write out data
+    fout = open('averaged_data.dat','w')
+    for i in range(len(oparray)):
+        fout.write(("%d ")%oparray[i])
+        for k in range(len(read_cols)):
+                fout.write((" %f")%read_cols[k][i])
+        fout.write('\n')
+    fout.close()
+
 
 
 def average_trajectory_md(binary,folderlistfile,vulcan=False,jobs=50,pythonscript=None):

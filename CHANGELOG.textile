@@ -1,7 +1,14 @@
 
 h1. CHANGELOG
 
-h3. Versions 20-41
+h3. Versions 46
+
+* combined_data function revamped.
+		no binary keyword
+		can handle any number of columns of data
+
+
+h3. Versions 20-45
 
 * numerous unsorted codes added.
 
