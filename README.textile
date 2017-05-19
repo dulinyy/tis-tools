@@ -1,7 +1,13 @@
 
 h1. CHANGELOG
 
-h3. Versions 46
+Please see wiki for details about the code.
+
+h3. Version 47
+
+* README updated with changelog
+
+h3. Version 46
 
 * combined_data function revamped.
 		no binary keyword
