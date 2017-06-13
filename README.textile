@@ -3,6 +3,10 @@ h1. CHANGELOG
 
 Please see wiki for details about the code.
 
+h3. Version 48
+
+* added codes for calculation of histograms
+
 h3. Version 47
 
 * README updated with changelog

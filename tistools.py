@@ -12,6 +12,8 @@ import numpy as np
 import time
 import logging
 import tistools_helpers.tistools_helpers as tistools_helpers
+import tistools_helpers.atoms as atomsclass
+import tistools_helpers.histogram as histogramclass
 
 #SRM:set up logger for the general error messages
 logger = logging.getLogger(__name__)
@@ -324,207 +326,7 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
 			raise SystemExit()
                 os.chdir(currentpath)
             
-"""
-def combine_averages(pathtype,bintype,manual=False,histomin=0,histomax=0,histobins=0):
 
-    Combine the outut of the previous function from different files into an averaged data
-
-    This is hard coded.
-    
-    #read stable states
-    sstateA,sstateB = helpers.read_op()
-    
-    #read interfaces
-    if manual==False:
-        interfacelist = helpers.generate_intflist()
-    else:
-        interfacelist = helpers.read_intflist()
-    
-    if bintype=='struct':
-            
-        oparray = np.array(range(int(sstateA),int(sstateB+1)))
-        bccavg = np.zeros(len(oparray))
-        fccavg = np.zeros(len(oparray))
-        hcpavg = np.zeros(len(oparray))
-        udfavg = np.zeros(len(oparray))
-        count = np.zeros(len(oparray))
-
-    elif bintype=='cluster':
-
-        oparray = np.array(range(int(sstateA),int(sstateB+1)))
-        min_dist = np.zeros(len(oparray))
-        numberofatoms = np.zeros(len(oparray))
-        percent = np.zeros(len(oparray))
-        surfacenumberofatoms = np.zeros(len(oparray))
-        surfacepercent = np.zeros(len(oparray))
-        seedinsurface = np.zeros(len(oparray))
-        seedinsurfacep = np.zeros(len(oparray))
-        count = np.zeros(len(oparray))
-    
-    elif bintype=='structhisto':
-        histox = np.linspace(histomin,histomax,histobins)
-        surface_bcc = np.zeros(len(histox))
-        surface_fcc = np.zeros(len(histox))
-        surface_hcp = np.zeros(len(histox))
-        surface_udf = np.zeros(len(histox))
-        seed_bcc = np.zeros(len(histox))
-        seed_fcc = np.zeros(len(histox))
-        seed_hcp = np.zeros(len(histox))
-        seed_udf = np.zeros(len(histox))
-        count=0
-
-    #struct histo doesnt need anything here
-    
-    for interface in interfacelist:
-        interface = interface.strip()
-        intfpath = os.path.join(os.getcwd(),"tis","la",interface)
-        intfpath = intfpath.strip()
-        pathpath = os.path.join(intfpath,pathtype+".dat")
-        pathpath = pathpath.strip()
-        pathlist = []
-        filenamelist = []
-
-        #we get the list of all paths that needs to be analysed
-        for path in open(pathpath,'r'):
-            pathlist.append(path)
-
-        #setup the tables and columns
-        ##this part is hardcoded now.
-        #has to be set up individually everytime
-        #module for structure dstributions
-        if bintype=='struct':
-            #may the analysis start
-            for path in pathlist:
-                path = path.strip()
-                #points to specific path folder
-                pathpath = os.path.join(intfpath,path)
-                #generate a random identifier
-                indentifier = interface+path
-                #generate a tempname
-                filedummy = indentifier+'.opd.core'
-                #a dummy file
-                filename = os.path.join(pathpath,filedummy)
-
-                #next hardcoded part
-                if os.path.isfile(filename) and os.path.getsize(filename) > 0:
-                #if os.path.exists(filename):
-                        op,bcc,fcc,hcp,udf = np.loadtxt(filename,unpack=True)
-                else:
-                        continue
-                op = op.astype(int)
-                #print fcc
-                for i in range(len(op)):
-                    for j in range(len(oparray)):
-                            if op[i]==oparray[j]:
-                                    #print op[i]
-                                    bccavg[j]+=bcc[i]
-                                    #print bccavg[j]
-                                    fccavg[j]+=fcc[i]
-                                    hcpavg[j]+=hcp[i]
-                                    udfavg[j]+=udf[i]
-                                    count[j]+=1
-
-
-        elif bintype=='cluster':
-
-            #may the analysis start
-            for path in pathlist:
-                path = path.strip()
-                #points to specific path folder
-                pathpath = os.path.join(intfpath,path)
-                #generate a random identifier
-                indentifier = interface+path
-                #generate a tempname
-                filedummy = indentifier+'.clu.dat'
-                filename = os.path.join(pathpath,filedummy)
-                op,smin_dist,snumberofatoms,spercent,ssurfacenumberofatoms,ssurfacepercent,sseedinsurface,sseedinsurfacep = np.loadtxt(filename,unpack=True,comments='#') 
-                op = op.astype(int)
-                snumberofatoms = snumberofatoms.astype(int)
-                ssurfacenumberofatoms = ssurfacenumberofatoms.astype(int)
-                sseedinsurface = sseedinsurface.astype(int)
-
-                for i in range(len(op)):
-                    for j in range(len(oparray)):
-                            if op[i]==oparray[j]:
-                                min_dist[j] += smin_dist[i]
-                                numberofatoms[j] += snumberofatoms[i]
-                                percent[j] += spercent[i]
-                                surfacenumberofatoms[j] += ssurfacenumberofatoms[i]
-                                surfacepercent[j] += ssurfacepercent[i]
-                                seedinsurface[j] += sseedinsurface[i]
-                                seedinsurfacep[j] += sseedinsurfacep[i]
-                                count += 1
-
-        elif bintype=='structhisto':
-
-            #may the analysis start
-            for path in pathlist:
-                path = path.strip()
-                #points to specific path folder
-                pathpath = os.path.join(intfpath,path)
-                #generate a random identifier
-                indentifier = interface+path
-                #generate a tempname
-                filedummy = indentifier+'.histo.dat'
-                filename = os.path.join(pathpath,filedummy)
-                if os.path.exists(filename):
-
-                        dist,surbcc,surfcc,surhcp,surudf,seebcc,seefcc,seehcp,seeudf = np.loadtxt(filename,unpack=True) 
-                else:
-                        continue
-                surface_bcc+=surbcc
-                surface_fcc+=surfcc
-                surface_hcp+=surhcp
-                surface_udf+=surudf
-                seed_bcc+=seebcc
-                seed_fcc+=seefcc
-                seed_hcp+=seehcp
-                seed_udf+=seeudf
-                count+=1
-
-    if bintype=='struct':
-
-        for i in range(len(oparray)):
-                if count[i]!=0:
-                    bccavg[i]/=float(count[i])
-                    fccavg[i]/=float(count[i])
-                    hcpavg[i]/=float(count[i])
-                    udfavg[i]/=float(count[i])
-            #print bccavg
-        X = np.column_stack((oparray,bccavg,fccavg,hcpavg,udfavg))
-        np.savetxt("averaged_data_struct.dat",X)
-            
-    elif bintype=='cluster':
-        
-        for i in range(len(oparray)):
-                if count[i]!=0:
-                    min_dist[i]/=count[i]
-                    numberofatoms[i]/=count[i]
-                    percent[i]/=count[i]
-                    surfacenumberofatoms[i]/=count[i]
-                    surfacepercent[i]/=count[i]
-                    seedinsurface[i]/=count[i]
-                    seedinsurfacep[i]/=count[i]
-
-        X = np.column_stack((oparray,min_dist,numberofatoms,percent,surfacenumberofatoms,surfacepercent,seedinsurface,seedinsurfacep))
-        np.savetxt("averaged_data_cluster.dat",X)
-
-    elif bintype=='structhisto':
-        
-        surface_bcc/=float(count)
-        surface_fcc/=float(count)
-        surface_hcp/=float(count)
-        surface_udf/=float(count)
-        seed_bcc/=float(count)
-        seed_fcc/=float(count)
-        seed_hcp/=float(count)
-        seed_udf/=float(count)
-
-        X = np.column_stack((histox,surface_bcc,surface_fcc,surface_hcp,surface_udf,seed_bcc,seed_fcc,seed_hcp,seed_udf))
-        np.savetxt("averaged_structure_histo.dat",X)
-
-
-"""
 
 def combine_averages(pathtype,columns=4,extension='.opd.dat',manual=False):
     """
@@ -611,122 +413,159 @@ def combine_averages(pathtype,columns=4,extension='.opd.dat',manual=False):
 
 
 
-def average_trajectory_md(binary,folderlistfile,vulcan=False,jobs=50,pythonscript=None):
-    """
-    Does the same function as average_trajectory function, but for normal md paths (AB)
+def read_alles(filename,filetype="dump"):
 
-    folder names are read from a file.
+    if (filetype=="dump"):
+        #ninenumber of lines are not required
+        #after that column 0,3,4,5 to be read.
+        count = 0
+        data = []
+        for line in open(filename,'r'):
+            data.append(line)
 
-    DO NOT USE
-    """
+        boxsizelist = []
+        natoms = int(data[3])
+        atoms = np.empty([natoms,5])
+        i = 0
+        for line in data:
+            if (count==5) or (count==6) or (count==7):
+                raw = line.split()
+                boxsizelist.append(float(raw[0]))
+                boxsizelist.append(float(raw[1]))
 
-    folderlist = []
-    for line in open(folderlistfile,'r'):
-        line.strip()
-        folderlist.append(line)
+            elif (count>8):
+                raw = line.split()
+                atoms[i][0] = int(raw[0])
+                atoms[i][1] = float(raw[3])
+                atoms[i][2] = float(raw[4])
+                atoms[i][3] = float(raw[5])
+                atoms[i][4] = 99999.00
+                #atoms[i][4] = False
+                i+=1
+            count+=1
 
-
-    for folder in folderlist:
-        pathpath = os.path.join(os.getcwd(),folder)
-        pathpath = pathpath.strip()
-        traj = os.path.join(pathpath,'traj.dat')
-        #data = separate_traj(traj)
-        if vulcan==False:
-            qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,writetofile=True)
-            #add the filename to the list that has to read later
-        else:
-            #scriptpath,jobname,pythonname,argarray
-            tmpname = os.path.join(pathpath,'traj.temp')
-            filename = os.path.join(pathpath,'traj.opd.dat')
-            argarray = [binary,traj,tmpname,filename]
-            scriptname = os.path.join(pathpath,'subscript.job')
-            os.system(("cp %s %s")%(pythonscript,pathpath))
-            jobname = 'fd'+folder
-            create_vulcan_script(scriptname,jobname,pythonscript,argarray)
-            currentpath = os.getcwd()
-            os.chdir(pathpath)
-	    print pathpath
-            runstatus=False
-            while(runstatus==False):
-                no_jobs = monitor_jobs()
-                if no_jobs < jobs:
-                    run_job(scriptname)
-                    runstatus=True
-                else:
-                    time.sleep(60)
-            
-            os.chdir(currentpath)
+        #print atoms
+        #print boxsizelist
+        return atoms
 
 
-def average_cluster(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,queue='serial'):
-    """
-    Run an binary on the selected type of paths and gather the output into text files.
-    Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
 
-    If vulcan is set to True, it runs jobs on vulcan based on the total number of jobs allowed.
+"""
+Create a function to create histograms
+"""
+#create histograms
+def setup_histogram(nhistograms,histomin,histomax,histobins):
 
-    If manual is set to True, interfaces are read from read_interfaces.txt from the sim directory.
+        histolist = []
+        for i in range(nhistograms):
+                hist = histogramclass.Histogram(histomin,histomax,histobins)
+                histolist.append(hist)
 
-    Used for calculating cluster props. Not completely done.
 
-    """
-    
-    if manual==False:
-        interfacelist = helpers.generate_intflist()
-    else:
-        interfacelist = helpers.read_intflist()
+        for histo in histolist:
+                for i in range(len(histo.histox)):
+                        histo.histox[i] = histo.getBoxX(i)
 
-    for interface in interfacelist:
-        interface = interface.strip()
-        intfpath = os.path.join(os.getcwd(),"tis","la",interface)
-        intfpath = intfpath.strip()
-        pathpath = os.path.join(intfpath,pathtype+".dat")
-        pathpath = pathpath.strip()
-        pathlist = []
-        filenamelist = []
+        return histolist
 
-        #we get the list of all paths that needs to be analysed
-        for path in open(pathpath,'r'):
-            pathlist.append(path)
 
-        #may the analysis start
-        for path in pathlist:
-            path = path.strip()
-            #points to specific path folder
-            pathpath = os.path.join(intfpath,path)
-            #combine the paths and return
-            #datacmb = combine_paths_return(pathpath)
-            #generate a random identifier
-            indentifier = interface+path
-            #generate a tempname
-            tmpname = os.path.join(pathpath,indentifier)
-            filedummy = indentifier+'.clu.dat'
-            #a dummy file
-            filename = os.path.join(pathpath,filedummy)
-            #pass it on
-            if vulcan==False:
-                os.system(("python  %s %s 4393 %s %s %s")%(pythonscript,pathpath,filename,tmpname,binary))
-            else:
-                #scriptpath,jobname,pythonname,argarray
-                argarray = [pathpath,'4393',filename,tmpname,binary]
-                scriptname = os.path.join(pathpath,'subscript.job')
-                os.system(("cp %s %s")%(pythonscript,pathpath))
-                jobname = interface+path
-                helpers.create_vulcan_script(scriptname,jobname,pythonscript,queue,argarray)
-                currentpath = os.getcwd()
-                os.chdir(pathpath)
-                print pathpath
-                runstatus=False
-                while(runstatus==False):
-                        no_jobs = monitor_jobs()
-                        if no_jobs < jobs:
-                                run_job(scriptname)
-                                runstatus=True
-                        else:
-                        	time.sleep(60)
-            
-                os.chdir(currentpath)
 
+#function to wrap histograms
+def create_histogram(file,histograms,binary,addvalue=1.):
+        
+        atoms = read_alles(file)
+                                
+        #apply the op
+        cmd = [binary,file]
+        proc = sub.Popen(cmd, stdin=sub.PIPE,stdout=sub.PIPE,stderr=sub.PIPE)
+        out,err = proc.communicate(input="")
+        proc.wait()
+
+        #read the histofile created
+        surfacefileaddress = "surface.dat" 
+        surface = atomsclass.Seed(surfacefileaddress)
+        surface.ReadSeed()
+        if surface.exists:
+                surface.PopulateSeed(atoms,read=False)
+
+        #first create the surface class
+        bccfileaddress = "bccid.dat" 
+        bcc = atomsclass.Seed(bccfileaddress)
+        bcc.ReadSeed()
+        if bcc.exists:
+                bcc.PopulateSeed(atoms,read=False)
+                bcc.CalculateDistances(surface)
+                for atomito in bcc.atoms:
+                        histograms[0].addAtomtoHisto(atomito,addvalue)
+
+        #first create the fcc class
+        fccfileaddress = "fccid.dat" 
+        fcc = atomsclass.Seed(fccfileaddress)
+        fcc.ReadSeed()
+        if fcc.exists:
+                fcc.PopulateSeed(atoms,read=False)
+                fcc.CalculateDistances(surface)
+                for atomito in fcc.atoms:
+                        histograms[1].addAtomtoHisto(atomito,addvalue)
+                                
+        #first create the hcp class
+        hcpfileaddress = "hcpid.dat" 
+        hcp = atomsclass.Seed(hcpfileaddress)
+        hcp.ReadSeed()
+        if hcp.exists:
+                hcp.PopulateSeed(atoms,read=False)
+                hcp.CalculateDistances(surface)
+                for atomito in hcp.atoms:
+                        histograms[2].addAtomtoHisto(atomito,addvalue)
+
+        #first create the udf class
+        udffileaddress = "udfid.dat" 
+        udf = atomsclass.Seed(udffileaddress)
+        udf.ReadSeed()
+        if udf.exists:
+                udf.PopulateSeed(atoms,read=False)
+                udf.CalculateDistances(surface)
+                for atomito in udf.atoms:
+                        histograms[3].addAtomtoHisto(atomito,addvalue)
+
+
+        return histograms
+
+
+
+#normalise and write histograms
+def normalise_histograms(histograms,normalise='perbin',outputfile='histo.dat'):
+        if normalise=='perbin':
+                #normalise values per bin per different histograms
+                for i in range(len(histograms[0].histo)):
+                        binsum = 0
+                        for histo in histograms:
+                                binsum += histo.histo[i]
+                        for histo in histograms:
+                                if binsum!=0:
+                                        histo.histo[i]/=float(binsum)
+
+        elif normalise=='peraverage':
+                #normalise with the total value
+                for i in range(len(histograms[0].histo)):
+                        for histo in histograms:
+                                if histo.count[i]!=0:
+                                        histo.histo[i]/=float(histo.count[i])
+
+        elif normalise=='perhisto':
+                for histo in histograms:
+                        histosum = np.sum(histo.histo)
+                        for i in range(len(histo.histo)):
+                                if histosum!=0:
+                                        histo.histo[i]/=float(histosum)
+
+        #print out the data
+        #hardcoded at this point
+        histo_output = np.column_stack((histograms[0].histox,histograms[0].histo,histograms[1].histo,histograms[2].histo,histograms[3].histo))
+        np.savetxt(outputfile,histo_output)
+
+
+        
 
 
 
