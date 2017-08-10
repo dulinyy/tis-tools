@@ -14,8 +14,9 @@ import logging
 import tistools_helpers.tistools_helpers as tistools_helpers
 import tistools_helpers.atoms as atomsclass
 import tistools_helpers.histogram as histogramclass
+import multiprocessing as mp
 
-#SRM:set up logger for the general error messages
+#SRM:set up logger for the general error messages,
 logger = logging.getLogger(__name__)
 handler = logging.FileHandler("analysis.log")
 formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
@@ -565,7 +566,29 @@ def normalise_histograms(histograms,normalise='perbin',outputfile='histo.dat'):
         np.savetxt(outputfile,histo_output)
 
 
-        
+     
+
+def eval_op_parallel(pythonscript,filename,outfilename,binary,queue='serial',cores=8,gzip=True,vulcan=True):
+        """
+        Op evaluation code for running on vulcan
+        """
+
+        if vulcan==True:
+                scriptpath = os.path.join(os.getcwd(),'subscript.job')
+                jobname = 'opeval'
+                argarray = [binary,filename,outfilename,vulcan,gzip]
+                helpers.create_vulcan_script(scriptpath,jobname,pythonscript,cores,queue,argarray)
+                helpers.run_job(scriptpath)
+
+        else:
+                os.system(("python %s %s %s %s %s %s")%(pythonscript,binary,filename,outfilename,str(vulcan),str(gzip)))
+
+
+
+
+
+
+
 
 
 
