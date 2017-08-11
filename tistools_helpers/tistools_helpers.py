@@ -155,7 +155,7 @@ class tistools_helpers(object):
         return interfacelist
 
 
-    def separate_traj(self,traj,gzip=False,writetofile=False):
+    def separate_traj(self,traj,writetofile=False):
         """
         Seperate the trajectory and return in a data file
         data array consits of sub array of slices
@@ -163,19 +163,23 @@ class tistools_helpers(object):
         """
         data = []
         datasliced = []
-        #if gzip==False:
-	trajgz = traj + '.gz'
-        if os.path.exists(traj):
-	    print "exits"
-            infile = open(traj,'r')
-            for line in infile:
-                data.append(line)
-        elif os.path.exists(trajgz):
-	    print "zipped exists"
-            for line in self.readgzlines(traj):
-                data.append(line)
+        #rewrite of the gzip module to auto identify
+        #And hence automatically find if its a zip file
+        filename_split = traj.split('.')
+
+        if filename_split[-1]=='gz':        
+                if os.path.exists(traj):
+                        print "zipped exists"
+                        for line in self.readgzlines(traj):
+                                data.append(line)
+                else:
+                        print "file not found"
         else:
-	    print "file not found"
+                if os.path.exists(traj):
+                        print "exits"
+                        infile = open(traj,'r')
+                        for line in infile:
+                                data.append(line)
 
         nlines = len(data)
         natoms = int(data[3])
@@ -292,7 +296,7 @@ class tistools_helpers(object):
 #----------------------------------------------------------------------------------------------------------------
 #                                       LEVEL TWO HELPERS
 #----------------------------------------------------------------------------------------------------------------
-    def combine_paths_return(self,pathno,gzip=False):
+    def combine_paths_return(self,pathno):
         """
         Combines forward and backward part in right order
         and returns the combined data string.
@@ -301,8 +305,8 @@ class tistools_helpers(object):
         print pathno
         fwdpath = os.path.join(pathno,"forward","traj.dat")
         bkdpath = os.path.join(pathno,"backward","traj.dat")
-        datafwd = self.separate_traj(fwdpath,gzip=gzip)
-        databkd = self.separate_traj(bkdpath,gzip=gzip)
+        datafwd = self.separate_traj(fwdpath)
+        databkd = self.separate_traj(bkdpath)
         datacmb = []
 
         firstslice = True
@@ -313,7 +317,7 @@ class tistools_helpers(object):
         return datacmb
 
 
-    def combine_paths_write(self,pathno,writefile,gzip=False):
+    def combine_paths_write(self,pathno,writefile):
         """
         Combine the backward and forward part of the trajectory
         remember to delete the combined paths after use!
@@ -321,7 +325,7 @@ class tistools_helpers(object):
         """
         print pathno
         outfile = open(writefile,'w')
-        datacmb = self.combine_paths_return(pathno,gzip=gzip)
+        datacmb = self.combine_paths_return(pathno)
         for i in range(len(datacmb)):
             for j in range(len(datacmb[i])):
                 outfile.write(datacmb[i][j])

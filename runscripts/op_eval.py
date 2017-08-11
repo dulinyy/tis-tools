@@ -61,7 +61,7 @@ def getQTrajectoryParallel(data,instance,binary):
         return instance,qtraj
 
 
-def getFullTrajectoryParallel(filename,outfilename,binary,vulcan,gzip):
+def getFullTrajectoryParallel(filename,outfilename,binary,vulcan):
         
         #pick number of cores
         try:
@@ -79,7 +79,7 @@ def getFullTrajectoryParallel(filename,outfilename,binary,vulcan,gzip):
         data = []
         
         if os.path.exists(filename):
-                datasliced = helpers.separate_traj(filename,gzip)
+                datasliced = helpers.separate_traj(filename)
         
         else:
                 print "file not found"
@@ -153,19 +153,14 @@ if __name__=="__main__":
         filename = sys.argv[2]
         outfilename = sys.argv[3]
         vulcan = sys.argv[4]
-        gzip = sys.argv[5]
 
-        if gzip=='False':
-                gzip=False
-        elif gzip=='True':
-                gzip=True
 
         if vulcan=='False':
                 vulcan=False
         elif vulcan=='True':
                 vulcan=True
 
-        getFullTrajectoryParallel(filename,outfilename,binary,vulcan,gzip)
+        getFullTrajectoryParallel(filename,outfilename,binary,vulcan)
 
 
 

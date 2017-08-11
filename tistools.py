@@ -37,11 +37,11 @@ def zip_paths(start,stop,manual=False):
     helpers.zip_all_paths(start,stop,interfacelist)
 
 #calculates the binary value over a trajectory and writes to a file of choice
-def calc_trajectory(binary,traj,tmpname,filename,gzip=False,writetofile=True):
+def calc_trajectory(binary,traj,tmpname,filename,writetofile=True):
     """
     calculates the binary value over a trajectory and writes to a file of choice
     """
-    datacmb = helpers.combine_paths_return(traj,gzip=gzip)
+    datacmb = helpers.combine_paths_return(traj)
     opfile = open(filename,'w')
     tmpfilelist = []
     qtraj = []
@@ -134,7 +134,7 @@ def find_paths(start,stop):
 #interfacelist = list of interfaces for which to be calculated
 ##trial one did not work. Changing to text file based approach
 
-def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial',extension='.opd.dat'):
+def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,queue='serial',extension='.opd.dat'):
     """
     Run an binary on the selected type of paths and gather the output into text files.
     Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
@@ -154,7 +154,6 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
     logger.info(('vulcan set to: %s')%str(vulcan))
     logger.info(('pythonscript selected: %s')%pythonscript)
     logger.info(('manual reading of interfaces set to: %s')%str(manual))
-    logger.info(('zipped file support set to: %s')%str(gzip))
     logger.info(('cores selected: %d')%cores)
 
     if manual==False:
@@ -192,12 +191,12 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
             filename = os.path.join(pathpath,filedummy)
             #pass it on
             if vulcan==False:
-                qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,gzip=gzip,writetofile=True)
+                qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,writetofile=True)
                 #add the filename to the list that has to read later
             else:
                 #scriptpath,jobname,pythonname,argarray
 
-                argarray = [binary,pathpath,tmpname,filename,gzip]
+                argarray = [binary,pathpath,tmpname,filename]
                 scriptname = os.path.join(pathpath,'subscript.job')
                 os.system(("cp %s %s")%(pythonscript,pathpath))
 	  	jobname = interface+str(path)
@@ -219,7 +218,7 @@ def average_trajectory(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,ma
 
                 os.chdir(currentpath)
 
-def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,gzip=False,queue='serial',extension='.opd.dat',folder='FCC19'):
+def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript=None,manual=False,cores=1,queue='serial',extension='.opd.dat',folder='FCC19'):
     """
     Run an binary on the selected type of paths and gather the output into text files.
     Outputs are now with an opd.dat extension. This can be changed to allow for custom names.
@@ -246,7 +245,6 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
     logger.info(('vulcan set to: %s')%str(vulcan))
     logger.info(('pythonscript selected: %s')%pythonscript)
     logger.info(('manual reading of interfaces set to: %s')%str(manual))
-    logger.info(('zipped file support set to: %s')%str(gzip))
     logger.info(('cores selected: %d')%cores)
 
     if manual==False:
@@ -298,12 +296,12 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
             filename = os.path.join(pathpath,filedummy)
             #pass it on
             if vulcan==False:
-                qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,gzip=gzip,writetofile=True)
+                qtrajs = calc_trajectory(binary,pathpath,tmpname,filename,writetofile=True)
                 #add the filename to the list that has to read later
             else:
                 #scriptpath,jobname,pythonname,argarray
 
-                argarray = [binary,pathpath,tmpname,filename,gzip]
+                argarray = [binary,pathpath,tmpname,filename]
                 scriptname = os.path.join(pathpath,'subscript.job')
                 os.system(("cp %s %s")%(pythonscript,pathpath))
                 jobname = interface+str(path)
@@ -568,7 +566,7 @@ def normalise_histograms(histograms,normalise='perbin',outputfile='histo.dat'):
 
      
 
-def eval_op_parallel(pythonscript,filename,outfilename,binary,queue='serial',cores=8,gzip=True,vulcan=True):
+def eval_op_parallel(pythonscript,filename,outfilename,binary,queue='serial',cores=8,vulcan=True):
         """
         Op evaluation code for running on vulcan
         """
@@ -576,12 +574,12 @@ def eval_op_parallel(pythonscript,filename,outfilename,binary,queue='serial',cor
         if vulcan==True:
                 scriptpath = os.path.join(os.getcwd(),'subscript.job')
                 jobname = 'opeval'
-                argarray = [binary,filename,outfilename,vulcan,gzip]
+                argarray = [binary,filename,outfilename,vulcan]
                 helpers.create_vulcan_script(scriptpath,jobname,pythonscript,cores,queue,argarray)
                 helpers.run_job(scriptpath)
 
         else:
-                os.system(("python %s %s %s %s %s %s")%(pythonscript,binary,filename,outfilename,str(vulcan),str(gzip)))
+                os.system(("python %s %s %s %s %s")%(pythonscript,binary,filename,outfilename,str(vulcan)))
 
 
 
