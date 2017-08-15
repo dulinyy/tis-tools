@@ -303,8 +303,18 @@ class tistools_helpers(object):
         zip support added
         """
         print pathno
-        fwdpath = os.path.join(pathno,"forward","traj.dat.gz")
-        bkdpath = os.path.join(pathno,"backward","traj.dat.gz")
+
+        if os.path.exists(os.path.join(pathno,"forward","traj.dat.gz")):
+                fwdpath = os.path.join(pathno,"forward","traj.dat.gz")
+        elif os.path.exists(os.path.join(pathno,"forward","traj.dat")):
+                fwdpath = os.path.join(pathno,"forward","traj.dat")
+        
+        if os.path.exists(os.path.join(pathno,"backward","traj.dat.gz")):
+                bkdpath = os.path.join(pathno,"forward","traj.dat.gz")
+        elif os.path.exists(os.path.join(pathno,"backward","traj.dat")):
+                bkdpath = os.path.join(pathno,"backward","traj.dat")
+        
+
         datafwd = self.separate_traj(fwdpath)
         databkd = self.separate_traj(bkdpath)
         datacmb = []
@@ -348,11 +358,11 @@ class tistools_helpers(object):
                 if os.path.exists(fwd_traj):
                         self.converttogz(fwd_traj)
                 else:
-                        logger.error(('%s not found')%fwd_traj)
+                        logger.info(('%s not found')%fwd_traj)
                 if os.path.exists(bkd_traj):
                         self.converttogz(bkd_traj)
                 else:
-                        logger.error(('%s not found')%bkd_traj)
+                        logger.info(('%s not found')%bkd_traj)
             logger.info(("%s completed.")%interface)
 
 
