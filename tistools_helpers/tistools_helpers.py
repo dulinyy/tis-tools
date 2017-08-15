@@ -303,8 +303,8 @@ class tistools_helpers(object):
         zip support added
         """
         print pathno
-        fwdpath = os.path.join(pathno,"forward","traj.dat")
-        bkdpath = os.path.join(pathno,"backward","traj.dat")
+        fwdpath = os.path.join(pathno,"forward","traj.dat.gz")
+        bkdpath = os.path.join(pathno,"backward","traj.dat.gz")
         datafwd = self.separate_traj(fwdpath)
         databkd = self.separate_traj(bkdpath)
         datacmb = []
