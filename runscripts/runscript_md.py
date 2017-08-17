@@ -25,8 +25,8 @@ helpers = tistools_helpers.tistools_helpers()
 
 
 #calculates the binary value over a trajectory and writes to a file of choice
-def calc_trajectory(binary,traj,tmpname,filename,gzip=False):
-    datacmb = helpers.separate_traj(traj,gzip=True)
+def calc_trajectory(binary,traj,tmpname,filename):
+    datacmb = helpers.separate_traj(traj)
     opfile = open(filename,'w')
     #tmpfilelist = []
     qtraj = []
@@ -63,12 +63,6 @@ if __name__=="__main__":
     traj = sys.argv[2]
     tmpname = sys.argv[3]
     filename = sys.argv[4]
-    gzip = sys.argv[5]
-
-    if gzip=='False':
-        gzip=False
-    elif gzip=='True':
-        gzip=True
-
-    calc_trajectory(binary,traj,tmpname,filename,gzip=gzip)
+    
+    calc_trajectory(binary,traj,tmpname,filename)
 
