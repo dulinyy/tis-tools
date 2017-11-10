@@ -310,7 +310,7 @@ class tistools_helpers(object):
                 fwdpath = os.path.join(pathno,"forward","traj.dat")
         
         if os.path.exists(os.path.join(pathno,"backward","traj.dat.gz")):
-                bkdpath = os.path.join(pathno,"forward","traj.dat.gz")
+                bkdpath = os.path.join(pathno,"backward","traj.dat.gz")
         elif os.path.exists(os.path.join(pathno,"backward","traj.dat")):
                 bkdpath = os.path.join(pathno,"backward","traj.dat")
         
