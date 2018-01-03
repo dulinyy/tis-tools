@@ -239,6 +239,10 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
     pathrun=0
     if not os.path.exists(workdir):
 	os.mkdir(workdir)
+    else:
+        print "workdir exists. Dangerous territory here"
+        logger.error('workdir exists. Dangerous territory here')
+        raise SystemExit()
 
     logger.info(('binary selected: %s')%binary)
     logger.info(('pathtype selected: %s')%pathtype)
@@ -311,18 +315,18 @@ def average_trajectory_storage(binary,pathtype,vulcan=False,jobs=50,pythonscript
                 logger.info(('deploying job in %s')%pathpath)
                 
                 
-                #runstatus=False
-                #while(runstatus==False):
-                #    no_jobs = helpers.monitor_jobs()
-                #    if no_jobs < jobs:
-                helpers.run_job(scriptname)
-                #        runstatus=True
-                #    else:
-                #        time.sleep(60)
+                runstatus=False
+                while(runstatus==False):
+                    no_jobs = helpers.monitor_jobs()
+                    if no_jobs < jobs:
+                        helpers.run_job(scriptname)
+                        runstatus=True
+                    else:
+                        time.sleep(60)
                 logger.info('job deployed')
 		pathrun+=1
-		if pathrun>=300:
-			raise SystemExit()
+		#if pathrun>=300:
+		#	raise SystemExit()
                 os.chdir(currentpath)
             
 
@@ -412,7 +416,7 @@ def combine_averages(pathtype,columns=4,extension='.opd.dat',manual=False):
 
 
 
-def read_alles(filename,filetype="dump"):
+def read_alles(filename,filetype="dump",moreinfo=False):
 
     if (filetype=="dump"):
         #ninenumber of lines are not required
@@ -424,13 +428,16 @@ def read_alles(filename,filetype="dump"):
 
         boxsizelist = []
         natoms = int(data[3])
+        timestep = int(data[1])
         atoms = np.empty([natoms,5])
         i = 0
         for line in data:
             if (count==5) or (count==6) or (count==7):
                 raw = line.split()
-                boxsizelist.append(float(raw[0]))
-                boxsizelist.append(float(raw[1]))
+                boxsizelistcontainer = []
+                boxsizelistcontainer.append(float(raw[0]))
+                boxsizelistcontainer.append(float(raw[1]))
+                boxsizelist.append(boxsizelistcontainer)
 
             elif (count>8):
                 raw = line.split()
@@ -445,7 +452,10 @@ def read_alles(filename,filetype="dump"):
 
         #print atoms
         #print boxsizelist
-        return atoms
+        if moreinfo:
+                return atoms,boxsizelist,timestep        
+        else:
+                return atoms,boxsizelist
 
 
 
@@ -472,7 +482,7 @@ def setup_histogram(nhistograms,histomin,histomax,histobins):
 #function to wrap histograms
 def create_histogram(file,histograms,binary,addvalue=1.):
         
-        atoms = read_alles(file)
+        atoms,boxsizelist = read_alles(file)
                                 
         #apply the op
         cmd = [binary,file]
@@ -580,6 +590,57 @@ def eval_op_parallel(pythonscript,filename,outfilename,binary,queue='serial',cor
 
         else:
                 os.system(("python %s %s %s %s %s")%(pythonscript,binary,filename,outfilename,str(vulcan)))
+
+
+
+def check_pbc(x,maxx):
+        """
+        check periodic boundary condition
+        """
+        ex = x/maxx
+
+        if np.fabs(ex)> 0.5:
+                if ex>0:
+                        sign = 1
+                else:
+                        sign = -1
+                ex = ex-sign
+
+                x = ex*maxx
+
+        return x
+
+"""
+def convert_format(infile,outfile,atomname,informat='lammps',outformat='bopfox',timestep=.001):
+
+        if informat=='lammps':
+
+
+
+                datasliced = helpers.separate_traj(infile)
+                for data in datasliced:
+                        #read in data
+                        #write to a temporary snapshot
+                        tempfile = os.path.join(os.getcwd(),'temp.dat')   
+                        fout2 = open(tempfile,'w')
+                        fout2.write(data)
+                        fout2.close()
+
+                        #read in data and remove the file
+                        atoms,boxsizelist = read_alles(tempfile)
+                        os.system(("rm %s")%tempfile)
+
+                        #note that energies will be dummy values
+                        columns = 10
+
+
+
+"""
+
+
+
+
+
 
 
 

@@ -303,7 +303,7 @@ class tistools_helpers(object):
         zip support added
         """
         print pathno
-
+        print os.path.join(pathno,"forward","traj.dat")
         if os.path.exists(os.path.join(pathno,"forward","traj.dat.gz")):
                 fwdpath = os.path.join(pathno,"forward","traj.dat.gz")
         elif os.path.exists(os.path.join(pathno,"forward","traj.dat")):

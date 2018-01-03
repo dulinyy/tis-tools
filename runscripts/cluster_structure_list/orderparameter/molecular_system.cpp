@@ -1560,9 +1560,12 @@ int CMolecularSystem::get_greatestCluster(int criterium,int &greatestbelongsto)
 	   //cout << molecules[ti].id <<"\n";
 	   
 	   probfcc=this-> fccnormaq46Histo3d[get_HistoBox(this->molecules[ti].AQ4,a,b,n)][get_HistoBox(this->molecules[ti].AQ6,a,b,n)];
+     //cout<<probfcc<<endl;
 	   probbcc=this-> bccnormaq46Histo3d[get_HistoBox(this->molecules[ti].AQ4,a,b,n)][get_HistoBox(this->molecules[ti].AQ6,a,b,n)];
-	   probhcp=this-> hcpnormaq46Histo3d[get_HistoBox(this->molecules[ti].AQ4,a,b,n)][get_HistoBox(this->molecules[ti].AQ6,a,b,n)];
-	   
+	   //cout<<probbcc<<endl;
+     probhcp=this-> hcpnormaq46Histo3d[get_HistoBox(this->molecules[ti].AQ4,a,b,n)][get_HistoBox(this->molecules[ti].AQ6,a,b,n)];
+	   //cout<<probhcp<<endl;
+
 	   maxprob=probfcc;
 	   if ((probbcc > maxprob))
 	     {maxprob=probbcc;}
@@ -2182,7 +2185,7 @@ void CMolecularSystem::readcrystalHistogramFiles()
   //ifstream histoFile = ifstream(filename.c_str(),ifstream::in);
   //histoFile.open(filename.c_str(),ifstream::in);
 
-  string bccfile= "/home/users/menonsqr/bin/probaq46_bcc20.dat";
+  string bccfile= "/home/users/menonsqr/bin/Mo_bcc_25uc.dat";
   bcchistoFile.open(bccfile.c_str(),ifstream::in);
    if (bcchistoFile.is_open())
   {
@@ -2202,7 +2205,7 @@ void CMolecularSystem::readcrystalHistogramFiles()
 
   bcchistoFile.close();
 
-   string fccfile= "/home/users/menonsqr/bin/probaq46_fcc20.dat";
+   string fccfile= "/home/users/menonsqr/bin/Mo_fcc_25uc.dat";
    fcchistoFile.open(fccfile.c_str(),ifstream::in);
    // histoFile.open(filename.c_str(),ifstream::in);
    if (fcchistoFile.is_open())
@@ -2222,7 +2225,7 @@ void CMolecularSystem::readcrystalHistogramFiles()
   }
    fcchistoFile.close();
    
-   string hcpfile= "/home/users/menonsqr/bin/probaq46_hcp20.dat";
+   string hcpfile= "/home/users/menonsqr/bin/Mo_hcp_25uc.dat";
    hcphistoFile.open(hcpfile.c_str(),ifstream::in);
    // histoFile.open(filename.c_str(),ifstream::in);
    if (hcphistoFile.is_open())
@@ -2254,7 +2257,7 @@ void CMolecularSystem::readLiquidHistogramFile()
   double dummy;                        //dummy variable
   //char dummy_char[256];                //dummy line
   ifstream histoFile;
-  string filename= "/home/users/menonsqr/bin/probaq46_liq20.dat";
+  string filename= "/home/users/menonsqr/bin/Mo_lqd_25uc.dat";
   //ifstream histoFile = ifstream(filename.c_str(),ifstream::in);
   histoFile.open(filename.c_str(),ifstream::in);
    if (histoFile.is_open())

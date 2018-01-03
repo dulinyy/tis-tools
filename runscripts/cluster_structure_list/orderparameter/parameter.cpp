@@ -77,7 +77,7 @@ CParameter::~CParameter()
   }*/
 void CParameter::readParameter()
 {
-  this->neighbordistance = 3.27;
+  this->neighbordistance = 3.63;
   this->minfrenkel = 7;
   checkParameter();
 }
