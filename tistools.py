@@ -35,26 +35,27 @@ def delete_paths(start,stop,manual=False):
     else:
         interfacelist = helpers.read_intflist()
     #helpers.zip_all_paths(start,stop,interfacelist)
-    pathno_list = self.generate_pathlist(start,stop)
-    for interface in int_list:
+    pathno_list = helpers.generate_pathlist(start,stop)
+    for interface in interfacelist:
         interface = interface.strip()
         for path in pathno_list:
                 found = False
                 path = path.strip()
-                if os.path.exists(os.path.join(path,"forward","traj.dat.gz")):
-                        fwdpath = os.path.join(path,"forward","traj.dat.gz")
+		compath = os.path.join(os.getcwd(),'tis','la',interface,path)
+                if os.path.exists(os.path.join(compath,"forward","traj.dat.gz")):
+                        fwdpath = os.path.join(compath,"forward","traj.dat.gz")
                         found = True
-                elif os.path.exists(os.path.join(path,"forward","traj.dat")):
-                        fwdpath = os.path.join(path,"forward","traj.dat")
+                elif os.path.exists(os.path.join(compath,"forward","traj.dat")):
+                        fwdpath = os.path.join(compath,"forward","traj.dat")
                         found = True
                 else:
                         logger.info(("forward part of %s in interface %s not found")%(path,interface))
         
-                if os.path.exists(os.path.join(path,"backward","traj.dat.gz")):
-                        bkdpath = os.path.join(path,"backward","traj.dat.gz")
+                if os.path.exists(os.path.join(compath,"backward","traj.dat.gz")):
+                        bkdpath = os.path.join(compath,"backward","traj.dat.gz")
                         found = True
-                elif os.path.exists(os.path.join(path,"backward","traj.dat")):
-                        bkdpath = os.path.join(path,"backward","traj.dat")
+                elif os.path.exists(os.path.join(compath,"backward","traj.dat")):
+                        bkdpath = os.path.join(compath,"backward","traj.dat")
                         found = True
                 else:
                         logger.info(("backward part of %s in interface %s not found")%(path,interface))
