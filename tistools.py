@@ -28,6 +28,44 @@ logger.propagate = False
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
+#function to delete all paths,but maintain the other data
+def delete_paths(start,stop,manual=False):
+    if manual==False:
+        interfacelist = helpers.generate_intflist()
+    else:
+        interfacelist = helpers.read_intflist()
+    #helpers.zip_all_paths(start,stop,interfacelist)
+    pathno_list = self.generate_pathlist(start,stop)
+    for interface in int_list:
+        interface = interface.strip()
+        for path in pathno_list:
+                found = False
+                path = path.strip()
+                if os.path.exists(os.path.join(path,"forward","traj.dat.gz")):
+                        fwdpath = os.path.join(path,"forward","traj.dat.gz")
+                        found = True
+                elif os.path.exists(os.path.join(path,"forward","traj.dat")):
+                        fwdpath = os.path.join(path,"forward","traj.dat")
+                        found = True
+                else:
+                        logger.info(("forward part of %s in interface %s not found")%(path,interface))
+        
+                if os.path.exists(os.path.join(path,"backward","traj.dat.gz")):
+                        bkdpath = os.path.join(path,"backward","traj.dat.gz")
+                        found = True
+                elif os.path.exists(os.path.join(path,"backward","traj.dat")):
+                        bkdpath = os.path.join(path,"backward","traj.dat")
+                        found = True
+                else:
+                        logger.info(("backward part of %s in interface %s not found")%(path,interface))
+                
+                if found:
+                        os.system(("rm %s")%fwdpath)
+                        os.system(("rm %s")%bkdpath)
+            
+        logger.info(("%s path deletion completed.")%interface)
+
+
 #function to zip all paths
 def zip_paths(start,stop,manual=False):
     if manual==False:
@@ -35,6 +73,7 @@ def zip_paths(start,stop,manual=False):
     else:
         interfacelist = helpers.read_intflist()
     helpers.zip_all_paths(start,stop,interfacelist)
+
 
 #calculates the binary value over a trajectory and writes to a file of choice
 def calc_trajectory(binary,traj,tmpname,filename,writetofile=True):
@@ -516,6 +555,9 @@ def check_pbc(x,maxx):
                 x = ex*maxx
 
         return x
+
+
+
 
 """
 def convert_format(infile,outfile,atomname,informat='lammps',outformat='bopfox',timestep=.001):
