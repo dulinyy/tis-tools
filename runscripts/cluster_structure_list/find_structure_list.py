@@ -157,15 +157,11 @@ if __name__=="__main__":
 	outputfile = sys.argv[4]
 	tmpname = sys.argv[3]
 	binary = sys.argv[1]
-	gzip = sys.argv[5]	
+	
 	
 	deletefiles=False
 	
 
-	if gzip=='True':
-		gzip=True
-	else:
-		gzip=False
 
 	#now we can start the reading of data
 	#data = helpers.separate_traj(traj)
@@ -204,10 +200,10 @@ if __name__=="__main__":
 
         	#read in the output
         	nucsize = out[0]
-        	fbcc = out[1]
-        	ffcc = out[2]
-        	fhcp = out[3]
-        	fudf = out[4]
+        	#fbcc = out[1]
+        	ffcc = out[1]
+        	fhcp = out[2]
+        	fudf = out[3]
         	fout2.write(distribution)
 
 		fout2.flush()
@@ -222,9 +218,9 @@ if __name__=="__main__":
 	
 
 	        #first create the surface class
-		bccfileaddress = "bccid.dat" 
-		bcc = Seed(bccfileaddress)
-		bcc.ReadSeed()
+		#bccfileaddress = "bccid.dat" 
+		#bcc = Seed(bccfileaddress)
+		#bcc.ReadSeed()
 
 
 	        #first create the fcc class
@@ -247,8 +243,8 @@ if __name__=="__main__":
 		fout.write("STEP\n")
 		fout.write(("%d\n")% i)
 		fout.write("BCC\n")
-		for m in bcc.seedids:
-			fout.write(("%d ")%m)
+		#
+		#	fout.write(("%d ")%m)
 		fout.write("\n")
 		fout.write("FCC\n")
 		for m in fcc.seedids:
