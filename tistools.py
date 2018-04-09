@@ -75,6 +75,14 @@ def zip_paths(start,stop,manual=False):
         interfacelist = helpers.read_intflist()
     helpers.zip_all_paths(start,stop,interfacelist)
 
+#function to zip all paths
+def unzip_paths(start,stop,manual=False):
+    if manual==False:
+        interfacelist = helpers.generate_intflist()
+    else:
+        interfacelist = helpers.read_intflist()
+    helpers.unzip_all_paths(start,stop,interfacelist)
+
 
 #calculates the binary value over a trajectory and writes to a file of choice
 def calc_trajectory(binary,traj,tmpname,filename,writetofile=True):

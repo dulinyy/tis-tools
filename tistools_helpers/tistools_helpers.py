@@ -77,6 +77,14 @@ class tistools_helpers(object):
 	f_out.close()
         os.remove(fname)
 
+    def convertfromgz(self,fname):
+        """
+        function to zip files
+        """
+        unzipfile = fname + '.gz'
+        os.system(("zcat %s > %s")%(unzipfile,fname))
+        os.remove(unzipfile)
+
     #to check the type of the path
     def check_type(self,sA,sB,sstateA,sstateB):
         """
@@ -218,7 +226,7 @@ class tistools_helpers(object):
         of.write("#$ -S /bin/bash\n")
         of.write("#$ -r n\n")
         of.write("#$ -cwd\n")
-        of.write("#$ -l h_rt=05:59:00\n")
+        #of.write("#$ -l h_rt=05:59:00\n")
         #of.write(("#$ -l qname=%s\n")%queue)
         of.write("#$ -l h_vmem=12G\n")
         of.write("#$ -j y\n")
@@ -370,6 +378,29 @@ class tistools_helpers(object):
                         logger.info(('%s not found')%bkd_traj)
             logger.info(("%s completed.")%interface)
 
+    def unzip_all_paths(self,start,stop,int_list):
+        """
+        Zip all traj files
+        """
+        #int_list = self.generate_intflist()
+        pathno_list = self.generate_pathlist(start,stop)
+        for interface in int_list:
+            interface = interface.strip()
+            for path in pathno_list:
+                path = path.strip()
+                fwd_traj = os.path.join(os.getcwd(),'tis/la',interface,path,'forward','traj.dat')
+                bkd_traj = os.path.join(os.getcwd(),'tis/la',interface,path,'backward','traj.dat')
+                fwd_traj_a = os.path.join(os.getcwd(),'tis/la',interface,path,'forward','traj.dat.gz')
+                bkd_traj_a = os.path.join(os.getcwd(),'tis/la',interface,path,'backward','traj.dat.gz')
 
+                if os.path.exists(fwd_traj_a):
+                        self.convertfromgz(fwd_traj)
+                else:
+                        logger.info(('%s not found')%fwd_traj)
+                if os.path.exists(bkd_traj_a):
+                        self.convertfromgz(bkd_traj)
+                else:
+                        logger.info(('%s not found')%bkd_traj)
+            logger.info(("%s completed.")%interface)
 
 
