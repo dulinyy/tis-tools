@@ -17,8 +17,8 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = False 
 
 #seedfile
-seedfileaddress = '/home/users/menonsqr/SeedFCC27/seed.dat'
-orgfiles = '/home/users/menonsqr/storage/NS27/tis_run'
+#seedfileaddress = '/home/users/menonsqr/SeedFCC27/seed.dat'
+orgfiles = '/home/users/menonsqr/storage/Mo_u23'
 #create helpers class
 helpers = tistools_helpers.tistools_helpers()
 
@@ -31,7 +31,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
     hardcoded. Remove at some point.
     """
 
-    seedids = np.loadtxt(seedfileaddress,dtype=int,unpack=True)
+    #seedids = np.loadtxt(seedfileaddress,dtype=int,unpack=True)
 
 
     #read interfaces
@@ -70,7 +70,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 #	    nwritefile = os.path.join(pathpath,(identifier+'.opd.normal'))
 #            cwritefile = os.path.join(pathpath,(identifier+'.opd.core'))
 #	    swritefile = os.path.join(pathpath,(identifier+'.opd.surface'))
-            histofile = os.path.join(pathpath,(identifier+'histo.list'))
+            histofile = os.path.join(pathpath,(identifier+'.opd.dat'))
 #	    nfout = open(nwritefile,'w')
 #	    cfout = open(cwritefile,'w')
 #	    sfout = open(swritefile,'w')	
@@ -115,10 +115,10 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
                 nucsize = len(bccids)+len(fccids)+len(hcpids)+len(udfids)
 		#print nucsize 
                 #delete the seed particles from the lists
-                bccids = [x for x in bccids if x not in seedids]
-                fccids = [x for x in fccids if x not in seedids]
-                hcpids = [x for x in hcpids if x not in seedids]
-                udfids = [x for x in udfids if x not in seedids]
+                #bccids = [x for x in bccids if x not in seedids]
+                #fccids = [x for x in fccids if x not in seedids]
+                #hcpids = [x for x in hcpids if x not in seedids]
+                #udfids = [x for x in udfids if x not in seedids]
 
                 #calculate the fractions now
                 clustersize =  len(bccids)+len(fccids)+len(hcpids)+len(udfids)
@@ -198,7 +198,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
 if __name__=='__main__':
 
-    MakeStructureHistogram('AB',manual=True,gzip=True)
+    MakeStructureHistogram('AB',manual=False,gzip=False)
 
 
             

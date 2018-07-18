@@ -20,7 +20,7 @@ logger.propagate = False
 #workdir
 workdir = os.getcwd()
 #seedfileaddress = '/home/users/menonsqr/SeedFCC19/seed.dat'
-tstcluster = 450
+tstcluster = 50
 #seedhistomax = 25.0
 #seedhistomin = 0.0
 #seedhistobins = 200
@@ -233,11 +233,11 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
             #we are in the folder now
             #we have to read the actual trajectory
             actualtraj = os.path.join(workdir,'tis','la',interface,path)
-            data = helpers.combine_paths_return(actualtraj,gzip)
+            data = helpers.combine_paths_return(actualtraj)
             #we have the data on standby
             #time to read the output raw data histo file.
             
-            histofile = os.path.join(pathpath,(identifier+'opd.dat'))
+            histofile = os.path.join(pathpath,(identifier+'.opd.dat'))
             histodataslices = []
             histodata = []
             count=0
@@ -330,32 +330,32 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 			#extdist2 = []
                         if bcc.exists:
 				#print "BCC"
-                                extdist.append(bcc.CalculateDistances(seed))
+                                extdist.append(bcc.CalculateDistances(surface))
 				#print "BCC"
                                 bcc_sur = AssignHistograms(bcc,bcc_sur,nucsize)
                                 #extdist2.append(bcc.CalculateDistances(seed))
-                                bcc_see = AssignHistograms(bcc,bcc_see,1)
+                                #bcc_see = AssignHistograms(bcc,bcc_see,1)
                         if fcc.exists:
                                 #print "FCC"
-				extdist.append(fcc.CalculateDistances(seed))
+				extdist.append(fcc.CalculateDistances(surface))
 				#print "FCC"
                                 fcc_sur = AssignHistograms(fcc,fcc_sur,nucsize)
                                 #extdist2.append(fcc.CalculateDistances(seed))
-                                fcc_see = AssignHistograms(fcc,fcc_see,1)
+                                #fcc_see = AssignHistograms(fcc,fcc_see,1)
                         if hcp.exists:
                                 #print "HCP"
-				extdist.append(hcp.CalculateDistances(seed))
+				extdist.append(hcp.CalculateDistances(surface))
 				#print "HCP"
                                 hcp_sur = AssignHistograms(hcp,hcp_sur,nucsize)
                                 #extdist2.append(hcp.CalculateDistances(seed))
-                                hcp_see = AssignHistograms(hcp,hcp_see,1)
+                                #hcp_see = AssignHistograms(hcp,hcp_see,1)
                         if udf.exists:
 				#print "UDF"
-                                extdist.append(udf.CalculateDistances(seed))
+                                extdist.append(udf.CalculateDistances(surface))
 				#print "UDF"
                                 udf_sur = AssignHistograms(udf,udf_sur,nucsize)
                                 #extdist2.append(udf.CalculateDistances(seed))
-                                udf_see = AssignHistograms(udf,udf_see,1)
+                                #udf_see = AssignHistograms(udf,udf_see,1)
 			snapshots+=1
 			print snapshots
 			if snapshots>maxconfs:
@@ -436,7 +436,7 @@ def MakeStructureHistogram(pathtype,manual=False,gzip=False):
 
 if __name__=='__main__':
 
-    MakeStructureHistogram('AB',manual=True,gzip=True)
+    MakeStructureHistogram('AB',manual=False,gzip=False)
 
 
             
