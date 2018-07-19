@@ -1,6 +1,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <algorithm>
+#include <string>
 
 #ifndef NUCSTN_H
 #define NUCSTN_H
@@ -55,13 +56,14 @@ class CMolecule {
 
 //change this to work without lammps neighbour classes
 //now all my functions would go here
-double get_absDistance(CMolecule *, int ,int , double* ,double &, double &, double &);
-void get_AllNeighborsAndDistances(CMolecule *, int,  double, double* );
+void read_ParticleFile(CMolecule *, string , int , double (&)[3]);
+double get_absDistance(CMolecule *, int ,int , double(&)[3], double&, double&, double&);
+void get_AllNeighborsAndDistances(CMolecule *, int,  double, double(&)[3] );
 void convert_SphericalCoordinates(double , double , double , double &, double &, double &);
 double PLM(int , int , double );
 void YLM(int , int, double , double , double &, double &);
 void QLM(int ,int ,double ,double,double &, double &);
-void calculate_complexQLM_6(CMolecule *, int, double, double* );
+void calculate_complexQLM_6(CMolecule *, int, double, double(&)[3] );
 double get_NumberFromBond(CMolecule *, int,int );
 void calculate_frenkelNumbers(CMolecule *, int, double );
 int gather_clusters(CMolecule *, int , double , int );

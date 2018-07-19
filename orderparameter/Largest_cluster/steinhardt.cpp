@@ -1,8 +1,77 @@
 #include "nucstn.h"
 #include <iostream>
 #include <cmath>
+#include <string>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
 //--------------------------------------------------------------------------------------------
-double NUCSTN::get_absDistance(CMolecule *molecules, int ti ,int tj, double *box,double &diffx, double &diffy, double &diffz)
+
+void NUCSTN::read_ParticleFile(CMolecule *molecules, string filename, int nmax, double (&box)[3])
+{
+
+    //right now, nmax is an input -> should be created inside probably
+    //nonono -> its better like this
+    double posx,posy,posz;
+    int nop = nmax;
+    
+    double xsizeinf,ysizeinf,zsizeinf,xsizesup,ysizesup,zsizesup;
+    int idparticle;
+    double dummy;                        //dummy variable
+    char dummy_char[256];                //dummy line
+    ifstream confFile;
+  
+    confFile.open(filename.c_str(),ifstream::in);
+
+    if (confFile.is_open())
+    { 
+    
+        confFile.getline(dummy_char,256);
+        confFile.getline(dummy_char,256);
+        confFile.getline(dummy_char,256);
+         
+        confFile.getline(dummy_char,256);
+        confFile.getline(dummy_char,256);
+        confFile >> xsizeinf;
+        confFile >> xsizesup;
+        confFile >> ysizeinf;
+        confFile >> ysizesup;
+        confFile >> zsizeinf;
+        confFile >> zsizesup;;
+        confFile.getline(dummy_char,256);
+        confFile.getline(dummy_char,256);
+  
+        box[0] = xsizesup - xsizeinf;
+        box[1] = ysizesup - ysizeinf;
+        box[2] = zsizesup - zsizeinf;
+
+        //so lets read the particles positions
+        for (int ti = 0;ti<nop;ti++)
+        {
+            confFile>>idparticle;
+            confFile>>dummy;
+            confFile>>dummy;
+            confFile>>posx;
+            confFile>>posy;
+            confFile>>posz;
+            confFile>>dummy;
+            confFile>>dummy;
+            confFile>>dummy;
+     
+            //cout<<posx<<"\n"<<posy<<"\n"<<posz<<"\n";
+            molecules[ti].id = idparticle;
+            molecules[ti].posx = posx;
+            molecules[ti].posy = posy;
+            molecules[ti].posz = posz;
+        }
+    
+    }
+
+   
+}
+
+
+double NUCSTN::get_absDistance(CMolecule *molecules, int ti ,int tj, double (&box)[3],double &diffx, double &diffy, double &diffz)
 {
   double abs,boxx,boxy,boxz;
 
@@ -27,7 +96,7 @@ double NUCSTN::get_absDistance(CMolecule *molecules, int ti ,int tj, double *box
 }
 
 
-void NUCSTN::get_AllNeighborsAndDistances(CMolecule *molecules, int nmax, double cutoff, double *box )
+void NUCSTN::get_AllNeighborsAndDistances(CMolecule *molecules, int nmax, double cutoff, double (&box)[3] )
 {
 
         double nd,d;
@@ -85,6 +154,7 @@ void NUCSTN::get_AllNeighborsAndDistances(CMolecule *molecules, int nmax, double
         for (int ti=0; ti<nop; ti++){
                 molecules[ti].n_neighbors = ccount[ti];
         }
+
 
 }
 
@@ -158,7 +228,7 @@ void NUCSTN::QLM(int l,int m,double theta,double phi,double &realYLM, double &im
 }
 
 
-void NUCSTN::calculate_complexQLM_6(CMolecule *molecules, int nmax, double cutoff, double *box)
+void NUCSTN::calculate_complexQLM_6(CMolecule *molecules, int nmax, double cutoff, double (&box)[3])
 {
         //nn = number of neighbors
         int nn,nop;
@@ -185,6 +255,8 @@ void NUCSTN::calculate_complexQLM_6(CMolecule *molecules, int nmax, double cutof
                         molecules[ti].imgQ6[mi+6] = imgti;
                 }
         }
+
+
 
 }
 
@@ -230,7 +302,8 @@ void NUCSTN::calculate_frenkelNumbers(CMolecule *molecules, int nmax, double thr
                 molecules[ti].frenkelnumber = frenkelcons;
                 molecules[ti].avq6q6 /= molecules[ti].n_neighbors;
                 //cout<<this->molecules[ti].frenkelnumber<<""<<"\n";
-        } 
+        }
+
 }
 
 
@@ -277,6 +350,8 @@ int NUCSTN::gather_clusters(CMolecule *molecules, int nmax, double avgthreshold,
         if (clusterfreq[ti] > max) max=clusterfreq[ti];    
     }
 
+    cout<<clusterfreq<<endl;
+    
     delete [] clusterfreq;
     return max;
 
