@@ -67,6 +67,7 @@ void calculate_complexQLM_6(CMolecule *, int, double, double(&)[3] );
 double get_NumberFromBond(CMolecule *, int,int );
 void calculate_frenkelNumbers(CMolecule *, int, double );
 int gather_clusters(CMolecule *, int , double , int );
+void test_function();
 
 
 //end of NUCSIZE namespace        

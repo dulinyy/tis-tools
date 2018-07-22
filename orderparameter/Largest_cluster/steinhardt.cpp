@@ -6,6 +6,10 @@
 #include <sstream>
 #include <fstream>
 //--------------------------------------------------------------------------------------------
+void NUCSTN::test_function()
+{
+    cout<<"it works"<<endl;
+}
 
 void NUCSTN::read_ParticleFile(CMolecule *molecules, string filename, int nmax, double (&box)[3])
 {
